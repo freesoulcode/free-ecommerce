@@ -71,6 +71,28 @@ func (r *UserRepository) DeleteByID(ctx context.Context, id int64) error {
 	return nil
 }
 
+func (r *UserRepository) FindByID(ctx context.Context, id int64) (*domainuser.User, error) {
+	var model UserModel
+	if err := r.db.WithContext(ctx).Where("id = ?", id).First(&model).Error; err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return nil, appErrors.NotFound("user not found")
+		}
+		return nil, fmt.Errorf("find user by id: %w", err)
+	}
+
+	return &domainuser.User{
+		ID:            model.ID,
+		Email:         derefString(model.Email),
+		Phone:         derefString(model.Phone),
+		Nickname:      model.Nickname,
+		Status:        model.Status,
+		EmailVerified: model.EmailVerified,
+		PhoneVerified: model.PhoneVerified,
+		CreatedAt:     model.CreatedAt,
+		UpdatedAt:     model.UpdatedAt,
+	}, nil
+}
+
 func (r *UserRepository) ExistsByEmail(ctx context.Context, email string) (bool, error) {
 	if strings.TrimSpace(email) == "" {
 		return false, nil
@@ -112,4 +134,12 @@ func nullableString(value string) *string {
 	}
 
 	return &trimmed
+}
+
+func derefString(value *string) string {
+	if value == nil {
+		return ""
+	}
+
+	return *value
 }

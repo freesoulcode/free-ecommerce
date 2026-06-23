@@ -157,6 +157,190 @@ func (x *CreatePasswordCredentialResponse) GetPasswordAlgo() string {
 	return ""
 }
 
+type LoginRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Email         string                 `protobuf:"bytes,1,opt,name=email,proto3" json:"email,omitempty"`
+	Password      string                 `protobuf:"bytes,2,opt,name=password,proto3" json:"password,omitempty"`
+	DeviceId      string                 `protobuf:"bytes,3,opt,name=device_id,json=deviceId,proto3" json:"device_id,omitempty"`
+	UserAgent     string                 `protobuf:"bytes,4,opt,name=user_agent,json=userAgent,proto3" json:"user_agent,omitempty"`
+	ClientIp      string                 `protobuf:"bytes,5,opt,name=client_ip,json=clientIp,proto3" json:"client_ip,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *LoginRequest) Reset() {
+	*x = LoginRequest{}
+	mi := &file_proto_auth_v1_auth_proto_msgTypes[2]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *LoginRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*LoginRequest) ProtoMessage() {}
+
+func (x *LoginRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_proto_auth_v1_auth_proto_msgTypes[2]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use LoginRequest.ProtoReflect.Descriptor instead.
+func (*LoginRequest) Descriptor() ([]byte, []int) {
+	return file_proto_auth_v1_auth_proto_rawDescGZIP(), []int{2}
+}
+
+func (x *LoginRequest) GetEmail() string {
+	if x != nil {
+		return x.Email
+	}
+	return ""
+}
+
+func (x *LoginRequest) GetPassword() string {
+	if x != nil {
+		return x.Password
+	}
+	return ""
+}
+
+func (x *LoginRequest) GetDeviceId() string {
+	if x != nil {
+		return x.DeviceId
+	}
+	return ""
+}
+
+func (x *LoginRequest) GetUserAgent() string {
+	if x != nil {
+		return x.UserAgent
+	}
+	return ""
+}
+
+func (x *LoginRequest) GetClientIp() string {
+	if x != nil {
+		return x.ClientIp
+	}
+	return ""
+}
+
+type LoginResponse struct {
+	state                 protoimpl.MessageState `protogen:"open.v1"`
+	UserId                int64                  `protobuf:"varint,1,opt,name=user_id,json=userId,proto3" json:"user_id,omitempty"`
+	Email                 string                 `protobuf:"bytes,2,opt,name=email,proto3" json:"email,omitempty"`
+	Phone                 string                 `protobuf:"bytes,3,opt,name=phone,proto3" json:"phone,omitempty"`
+	AccessToken           string                 `protobuf:"bytes,8,opt,name=access_token,json=accessToken,proto3" json:"access_token,omitempty"`
+	RefreshToken          string                 `protobuf:"bytes,9,opt,name=refresh_token,json=refreshToken,proto3" json:"refresh_token,omitempty"`
+	TokenType             string                 `protobuf:"bytes,10,opt,name=token_type,json=tokenType,proto3" json:"token_type,omitempty"`
+	AccessTokenExpiresAt  int64                  `protobuf:"varint,11,opt,name=access_token_expires_at,json=accessTokenExpiresAt,proto3" json:"access_token_expires_at,omitempty"`
+	RefreshTokenExpiresAt int64                  `protobuf:"varint,12,opt,name=refresh_token_expires_at,json=refreshTokenExpiresAt,proto3" json:"refresh_token_expires_at,omitempty"`
+	RefreshSessionId      int64                  `protobuf:"varint,13,opt,name=refresh_session_id,json=refreshSessionId,proto3" json:"refresh_session_id,omitempty"`
+	unknownFields         protoimpl.UnknownFields
+	sizeCache             protoimpl.SizeCache
+}
+
+func (x *LoginResponse) Reset() {
+	*x = LoginResponse{}
+	mi := &file_proto_auth_v1_auth_proto_msgTypes[3]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *LoginResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*LoginResponse) ProtoMessage() {}
+
+func (x *LoginResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_proto_auth_v1_auth_proto_msgTypes[3]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use LoginResponse.ProtoReflect.Descriptor instead.
+func (*LoginResponse) Descriptor() ([]byte, []int) {
+	return file_proto_auth_v1_auth_proto_rawDescGZIP(), []int{3}
+}
+
+func (x *LoginResponse) GetUserId() int64 {
+	if x != nil {
+		return x.UserId
+	}
+	return 0
+}
+
+func (x *LoginResponse) GetEmail() string {
+	if x != nil {
+		return x.Email
+	}
+	return ""
+}
+
+func (x *LoginResponse) GetPhone() string {
+	if x != nil {
+		return x.Phone
+	}
+	return ""
+}
+
+func (x *LoginResponse) GetAccessToken() string {
+	if x != nil {
+		return x.AccessToken
+	}
+	return ""
+}
+
+func (x *LoginResponse) GetRefreshToken() string {
+	if x != nil {
+		return x.RefreshToken
+	}
+	return ""
+}
+
+func (x *LoginResponse) GetTokenType() string {
+	if x != nil {
+		return x.TokenType
+	}
+	return ""
+}
+
+func (x *LoginResponse) GetAccessTokenExpiresAt() int64 {
+	if x != nil {
+		return x.AccessTokenExpiresAt
+	}
+	return 0
+}
+
+func (x *LoginResponse) GetRefreshTokenExpiresAt() int64 {
+	if x != nil {
+		return x.RefreshTokenExpiresAt
+	}
+	return 0
+}
+
+func (x *LoginResponse) GetRefreshSessionId() int64 {
+	if x != nil {
+		return x.RefreshSessionId
+	}
+	return 0
+}
+
 var File_proto_auth_v1_auth_proto protoreflect.FileDescriptor
 
 const file_proto_auth_v1_auth_proto_rawDesc = "" +
@@ -171,9 +355,29 @@ const file_proto_auth_v1_auth_proto_rawDesc = "" +
 	"\auser_id\x18\x01 \x01(\x03R\x06userId\x12\x14\n" +
 	"\x05email\x18\x02 \x01(\tR\x05email\x12\x14\n" +
 	"\x05phone\x18\x03 \x01(\tR\x05phone\x12#\n" +
-	"\rpassword_algo\x18\x04 \x01(\tR\fpasswordAlgo2~\n" +
+	"\rpassword_algo\x18\x04 \x01(\tR\fpasswordAlgo\"\x99\x01\n" +
+	"\fLoginRequest\x12\x14\n" +
+	"\x05email\x18\x01 \x01(\tR\x05email\x12\x1a\n" +
+	"\bpassword\x18\x02 \x01(\tR\bpassword\x12\x1b\n" +
+	"\tdevice_id\x18\x03 \x01(\tR\bdeviceId\x12\x1d\n" +
+	"\n" +
+	"user_agent\x18\x04 \x01(\tR\tuserAgent\x12\x1b\n" +
+	"\tclient_ip\x18\x05 \x01(\tR\bclientIp\"\xd9\x02\n" +
+	"\rLoginResponse\x12\x17\n" +
+	"\auser_id\x18\x01 \x01(\x03R\x06userId\x12\x14\n" +
+	"\x05email\x18\x02 \x01(\tR\x05email\x12\x14\n" +
+	"\x05phone\x18\x03 \x01(\tR\x05phone\x12!\n" +
+	"\faccess_token\x18\b \x01(\tR\vaccessToken\x12#\n" +
+	"\rrefresh_token\x18\t \x01(\tR\frefreshToken\x12\x1d\n" +
+	"\n" +
+	"token_type\x18\n" +
+	" \x01(\tR\ttokenType\x125\n" +
+	"\x17access_token_expires_at\x18\v \x01(\x03R\x14accessTokenExpiresAt\x127\n" +
+	"\x18refresh_token_expires_at\x18\f \x01(\x03R\x15refreshTokenExpiresAt\x12,\n" +
+	"\x12refresh_session_id\x18\r \x01(\x03R\x10refreshSessionId2\xb6\x01\n" +
 	"\vAuthService\x12o\n" +
-	"\x18CreatePasswordCredential\x12(.auth.v1.CreatePasswordCredentialRequest\x1a).auth.v1.CreatePasswordCredentialResponseBDZBgithub.com/freesoulcode/free-ecommerce/gen/go/proto/auth/v1;authv1b\x06proto3"
+	"\x18CreatePasswordCredential\x12(.auth.v1.CreatePasswordCredentialRequest\x1a).auth.v1.CreatePasswordCredentialResponse\x126\n" +
+	"\x05Login\x12\x15.auth.v1.LoginRequest\x1a\x16.auth.v1.LoginResponseBDZBgithub.com/freesoulcode/free-ecommerce/gen/go/proto/auth/v1;authv1b\x06proto3"
 
 var (
 	file_proto_auth_v1_auth_proto_rawDescOnce sync.Once
@@ -187,16 +391,20 @@ func file_proto_auth_v1_auth_proto_rawDescGZIP() []byte {
 	return file_proto_auth_v1_auth_proto_rawDescData
 }
 
-var file_proto_auth_v1_auth_proto_msgTypes = make([]protoimpl.MessageInfo, 2)
+var file_proto_auth_v1_auth_proto_msgTypes = make([]protoimpl.MessageInfo, 4)
 var file_proto_auth_v1_auth_proto_goTypes = []any{
 	(*CreatePasswordCredentialRequest)(nil),  // 0: auth.v1.CreatePasswordCredentialRequest
 	(*CreatePasswordCredentialResponse)(nil), // 1: auth.v1.CreatePasswordCredentialResponse
+	(*LoginRequest)(nil),                     // 2: auth.v1.LoginRequest
+	(*LoginResponse)(nil),                    // 3: auth.v1.LoginResponse
 }
 var file_proto_auth_v1_auth_proto_depIdxs = []int32{
 	0, // 0: auth.v1.AuthService.CreatePasswordCredential:input_type -> auth.v1.CreatePasswordCredentialRequest
-	1, // 1: auth.v1.AuthService.CreatePasswordCredential:output_type -> auth.v1.CreatePasswordCredentialResponse
-	1, // [1:2] is the sub-list for method output_type
-	0, // [0:1] is the sub-list for method input_type
+	2, // 1: auth.v1.AuthService.Login:input_type -> auth.v1.LoginRequest
+	1, // 2: auth.v1.AuthService.CreatePasswordCredential:output_type -> auth.v1.CreatePasswordCredentialResponse
+	3, // 3: auth.v1.AuthService.Login:output_type -> auth.v1.LoginResponse
+	2, // [2:4] is the sub-list for method output_type
+	0, // [0:2] is the sub-list for method input_type
 	0, // [0:0] is the sub-list for extension type_name
 	0, // [0:0] is the sub-list for extension extendee
 	0, // [0:0] is the sub-list for field type_name
@@ -213,7 +421,7 @@ func file_proto_auth_v1_auth_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_proto_auth_v1_auth_proto_rawDesc), len(file_proto_auth_v1_auth_proto_rawDesc)),
 			NumEnums:      0,
-			NumMessages:   2,
+			NumMessages:   4,
 			NumExtensions: 0,
 			NumServices:   1,
 		},

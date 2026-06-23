@@ -7,4 +7,9 @@ type Repository interface {
 	ExistsByUserID(ctx context.Context, userID int64) (bool, error)
 	ExistsByEmail(ctx context.Context, email string) (bool, error)
 	ExistsByPhone(ctx context.Context, phone string) (bool, error)
+	FindByEmail(ctx context.Context, email string) (*PasswordCredential, error)
+}
+
+type RefreshSessionRepository interface {
+	CreateRefreshSession(ctx context.Context, session *RefreshSession) error
 }

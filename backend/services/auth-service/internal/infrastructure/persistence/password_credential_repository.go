@@ -23,6 +23,22 @@ type PasswordCredentialModel struct {
 
 func (PasswordCredentialModel) TableName() string { return "password_credentials" }
 
+type RefreshSessionModel struct {
+	ID                  int64      `gorm:"column:id;primaryKey"`
+	UserID              int64      `gorm:"column:user_id"`
+	TokenHash           string     `gorm:"column:token_hash"`
+	DeviceID            *string    `gorm:"column:device_id"`
+	UserAgent           *string    `gorm:"column:user_agent"`
+	ClientIP            *string    `gorm:"column:client_ip"`
+	ExpiresAt           time.Time  `gorm:"column:expires_at"`
+	RevokedAt           *time.Time `gorm:"column:revoked_at"`
+	ReplacedBySessionID *int64     `gorm:"column:replaced_by_session_id"`
+	CreatedAt           time.Time  `gorm:"column:created_at"`
+	UpdatedAt           time.Time  `gorm:"column:updated_at"`
+}
+
+func (RefreshSessionModel) TableName() string { return "refresh_sessions" }
+
 type PasswordCredentialRepository struct{ db *gorm.DB }
 
 func NewPasswordCredentialRepository(db *gorm.DB) *PasswordCredentialRepository {
@@ -75,12 +91,65 @@ func (r *PasswordCredentialRepository) ExistsByPhone(ctx context.Context, phone 
 	return count > 0, nil
 }
 
+func (r *PasswordCredentialRepository) FindByEmail(ctx context.Context, email string) (*domaincredential.PasswordCredential, error) {
+	if strings.TrimSpace(email) == "" {
+		return nil, appErrors.InvalidArgument("email is required")
+	}
+
+	var model PasswordCredentialModel
+	if err := r.db.WithContext(ctx).Where("email = ?", strings.TrimSpace(strings.ToLower(email))).First(&model).Error; err != nil {
+		if err == gorm.ErrRecordNotFound {
+			return nil, appErrors.Unauthorized("invalid email or password")
+		}
+		return nil, fmt.Errorf("find credential by email: %w", err)
+	}
+
+	return &domaincredential.PasswordCredential{
+		UserID:       model.UserID,
+		Email:        derefString(model.Email),
+		Phone:        derefString(model.Phone),
+		PasswordHash: model.PasswordHash,
+		PasswordAlgo: model.PasswordAlgo,
+		CreatedAt:    model.CreatedAt,
+		UpdatedAt:    model.UpdatedAt,
+	}, nil
+}
+
+func (r *PasswordCredentialRepository) CreateRefreshSession(ctx context.Context, session *domaincredential.RefreshSession) error {
+	model := RefreshSessionModel{
+		ID:                  session.ID,
+		UserID:              session.UserID,
+		TokenHash:           session.TokenHash,
+		DeviceID:            nullableString(session.DeviceID),
+		UserAgent:           nullableString(session.UserAgent),
+		ClientIP:            nullableString(session.ClientIP),
+		ExpiresAt:           session.ExpiresAt,
+		RevokedAt:           session.RevokedAt,
+		ReplacedBySessionID: session.ReplacedBySessionID,
+		CreatedAt:           session.CreatedAt,
+		UpdatedAt:           session.UpdatedAt,
+	}
+
+	if err := r.db.WithContext(ctx).Create(&model).Error; err != nil {
+		return fmt.Errorf("create refresh session: %w", err)
+	}
+
+	return nil
+}
+
 func nullableString(value string) *string {
 	trimmed := strings.TrimSpace(value)
 	if trimmed == "" {
 		return nil
 	}
 	return &trimmed
+}
+
+func derefString(value *string) string {
+	if value == nil {
+		return ""
+	}
+	return *value
 }
 
 func toDuplicateError(message string) error {

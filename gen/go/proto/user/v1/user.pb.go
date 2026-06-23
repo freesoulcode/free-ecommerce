@@ -253,6 +253,142 @@ func (*DeleteUserResponse) Descriptor() ([]byte, []int) {
 	return file_proto_user_v1_user_proto_rawDescGZIP(), []int{3}
 }
 
+type GetUserRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Id            int64                  `protobuf:"varint,1,opt,name=id,proto3" json:"id,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *GetUserRequest) Reset() {
+	*x = GetUserRequest{}
+	mi := &file_proto_user_v1_user_proto_msgTypes[4]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *GetUserRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*GetUserRequest) ProtoMessage() {}
+
+func (x *GetUserRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_proto_user_v1_user_proto_msgTypes[4]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use GetUserRequest.ProtoReflect.Descriptor instead.
+func (*GetUserRequest) Descriptor() ([]byte, []int) {
+	return file_proto_user_v1_user_proto_rawDescGZIP(), []int{4}
+}
+
+func (x *GetUserRequest) GetId() int64 {
+	if x != nil {
+		return x.Id
+	}
+	return 0
+}
+
+type GetUserResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Id            int64                  `protobuf:"varint,1,opt,name=id,proto3" json:"id,omitempty"`
+	Email         string                 `protobuf:"bytes,2,opt,name=email,proto3" json:"email,omitempty"`
+	Phone         string                 `protobuf:"bytes,3,opt,name=phone,proto3" json:"phone,omitempty"`
+	Nickname      string                 `protobuf:"bytes,4,opt,name=nickname,proto3" json:"nickname,omitempty"`
+	Status        string                 `protobuf:"bytes,5,opt,name=status,proto3" json:"status,omitempty"`
+	EmailVerified bool                   `protobuf:"varint,6,opt,name=email_verified,json=emailVerified,proto3" json:"email_verified,omitempty"`
+	PhoneVerified bool                   `protobuf:"varint,7,opt,name=phone_verified,json=phoneVerified,proto3" json:"phone_verified,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *GetUserResponse) Reset() {
+	*x = GetUserResponse{}
+	mi := &file_proto_user_v1_user_proto_msgTypes[5]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *GetUserResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*GetUserResponse) ProtoMessage() {}
+
+func (x *GetUserResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_proto_user_v1_user_proto_msgTypes[5]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use GetUserResponse.ProtoReflect.Descriptor instead.
+func (*GetUserResponse) Descriptor() ([]byte, []int) {
+	return file_proto_user_v1_user_proto_rawDescGZIP(), []int{5}
+}
+
+func (x *GetUserResponse) GetId() int64 {
+	if x != nil {
+		return x.Id
+	}
+	return 0
+}
+
+func (x *GetUserResponse) GetEmail() string {
+	if x != nil {
+		return x.Email
+	}
+	return ""
+}
+
+func (x *GetUserResponse) GetPhone() string {
+	if x != nil {
+		return x.Phone
+	}
+	return ""
+}
+
+func (x *GetUserResponse) GetNickname() string {
+	if x != nil {
+		return x.Nickname
+	}
+	return ""
+}
+
+func (x *GetUserResponse) GetStatus() string {
+	if x != nil {
+		return x.Status
+	}
+	return ""
+}
+
+func (x *GetUserResponse) GetEmailVerified() bool {
+	if x != nil {
+		return x.EmailVerified
+	}
+	return false
+}
+
+func (x *GetUserResponse) GetPhoneVerified() bool {
+	if x != nil {
+		return x.PhoneVerified
+	}
+	return false
+}
+
 var File_proto_user_v1_user_proto protoreflect.FileDescriptor
 
 const file_proto_user_v1_user_proto_rawDesc = "" +
@@ -272,12 +408,23 @@ const file_proto_user_v1_user_proto_rawDesc = "" +
 	"\x0ephone_verified\x18\a \x01(\bR\rphoneVerified\"#\n" +
 	"\x11DeleteUserRequest\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\x03R\x02id\"\x14\n" +
-	"\x12DeleteUserResponse2\x9b\x01\n" +
+	"\x12DeleteUserResponse\" \n" +
+	"\x0eGetUserRequest\x12\x0e\n" +
+	"\x02id\x18\x01 \x01(\x03R\x02id\"\xcf\x01\n" +
+	"\x0fGetUserResponse\x12\x0e\n" +
+	"\x02id\x18\x01 \x01(\x03R\x02id\x12\x14\n" +
+	"\x05email\x18\x02 \x01(\tR\x05email\x12\x14\n" +
+	"\x05phone\x18\x03 \x01(\tR\x05phone\x12\x1a\n" +
+	"\bnickname\x18\x04 \x01(\tR\bnickname\x12\x16\n" +
+	"\x06status\x18\x05 \x01(\tR\x06status\x12%\n" +
+	"\x0eemail_verified\x18\x06 \x01(\bR\remailVerified\x12%\n" +
+	"\x0ephone_verified\x18\a \x01(\bR\rphoneVerified2\xd9\x01\n" +
 	"\vUserService\x12E\n" +
 	"\n" +
 	"CreateUser\x12\x1a.user.v1.CreateUserRequest\x1a\x1b.user.v1.CreateUserResponse\x12E\n" +
 	"\n" +
-	"DeleteUser\x12\x1a.user.v1.DeleteUserRequest\x1a\x1b.user.v1.DeleteUserResponseBDZBgithub.com/freesoulcode/free-ecommerce/gen/go/proto/user/v1;userv1b\x06proto3"
+	"DeleteUser\x12\x1a.user.v1.DeleteUserRequest\x1a\x1b.user.v1.DeleteUserResponse\x12<\n" +
+	"\aGetUser\x12\x17.user.v1.GetUserRequest\x1a\x18.user.v1.GetUserResponseBDZBgithub.com/freesoulcode/free-ecommerce/gen/go/proto/user/v1;userv1b\x06proto3"
 
 var (
 	file_proto_user_v1_user_proto_rawDescOnce sync.Once
@@ -291,20 +438,24 @@ func file_proto_user_v1_user_proto_rawDescGZIP() []byte {
 	return file_proto_user_v1_user_proto_rawDescData
 }
 
-var file_proto_user_v1_user_proto_msgTypes = make([]protoimpl.MessageInfo, 4)
+var file_proto_user_v1_user_proto_msgTypes = make([]protoimpl.MessageInfo, 6)
 var file_proto_user_v1_user_proto_goTypes = []any{
 	(*CreateUserRequest)(nil),  // 0: user.v1.CreateUserRequest
 	(*CreateUserResponse)(nil), // 1: user.v1.CreateUserResponse
 	(*DeleteUserRequest)(nil),  // 2: user.v1.DeleteUserRequest
 	(*DeleteUserResponse)(nil), // 3: user.v1.DeleteUserResponse
+	(*GetUserRequest)(nil),     // 4: user.v1.GetUserRequest
+	(*GetUserResponse)(nil),    // 5: user.v1.GetUserResponse
 }
 var file_proto_user_v1_user_proto_depIdxs = []int32{
 	0, // 0: user.v1.UserService.CreateUser:input_type -> user.v1.CreateUserRequest
 	2, // 1: user.v1.UserService.DeleteUser:input_type -> user.v1.DeleteUserRequest
-	1, // 2: user.v1.UserService.CreateUser:output_type -> user.v1.CreateUserResponse
-	3, // 3: user.v1.UserService.DeleteUser:output_type -> user.v1.DeleteUserResponse
-	2, // [2:4] is the sub-list for method output_type
-	0, // [0:2] is the sub-list for method input_type
+	4, // 2: user.v1.UserService.GetUser:input_type -> user.v1.GetUserRequest
+	1, // 3: user.v1.UserService.CreateUser:output_type -> user.v1.CreateUserResponse
+	3, // 4: user.v1.UserService.DeleteUser:output_type -> user.v1.DeleteUserResponse
+	5, // 5: user.v1.UserService.GetUser:output_type -> user.v1.GetUserResponse
+	3, // [3:6] is the sub-list for method output_type
+	0, // [0:3] is the sub-list for method input_type
 	0, // [0:0] is the sub-list for extension type_name
 	0, // [0:0] is the sub-list for extension extendee
 	0, // [0:0] is the sub-list for field type_name
@@ -321,7 +472,7 @@ func file_proto_user_v1_user_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_proto_user_v1_user_proto_rawDesc), len(file_proto_user_v1_user_proto_rawDesc)),
 			NumEnums:      0,
-			NumMessages:   4,
+			NumMessages:   6,
 			NumExtensions: 0,
 			NumServices:   1,
 		},

@@ -4,11 +4,11 @@ import (
 	"log"
 
 	applicationbuyer "github.com/freesoulcode/free-ecommerce/backend/apis/buyer-api/internal/application/buyer"
-	serviceauthgrpc "github.com/freesoulcode/free-ecommerce/backend/apis/buyer-api/internal/infrastructure/authgrpc"
-	sharedlogger "github.com/freesoulcode/free-ecommerce/backend/pkg/logger"
 	servicehttp "github.com/freesoulcode/free-ecommerce/backend/apis/buyer-api/internal/handler/http"
+	serviceauthgrpc "github.com/freesoulcode/free-ecommerce/backend/apis/buyer-api/internal/infrastructure/authgrpc"
 	serviceconfig "github.com/freesoulcode/free-ecommerce/backend/apis/buyer-api/internal/infrastructure/config"
 	serviceusergrpc "github.com/freesoulcode/free-ecommerce/backend/apis/buyer-api/internal/infrastructure/usergrpc"
+	sharedlogger "github.com/freesoulcode/free-ecommerce/backend/pkg/logger"
 	"go.uber.org/zap"
 )
 
@@ -40,10 +40,11 @@ func main() {
 	}()
 
 	registerBuyerService := applicationbuyer.NewRegisterBuyerService(userServiceClient, authServiceClient)
-	buyerHandler := servicehttp.NewBuyerHandler(registerBuyerService)
+	loginBuyerService := applicationbuyer.NewLoginBuyerService(authServiceClient, userServiceClient)
+	buyerHandler := servicehttp.NewBuyerHandler(registerBuyerService, loginBuyerService)
 
 	router := servicehttp.NewRouter(servicehttp.RouterParams{
-		ServiceName: cfg.ServiceName,
+		ServiceName:  cfg.ServiceName,
 		BuyerHandler: buyerHandler,
 	})
 	logger.Info("starting http server",

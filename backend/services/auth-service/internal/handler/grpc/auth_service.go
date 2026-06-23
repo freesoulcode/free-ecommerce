@@ -4,9 +4,9 @@ import (
 	"context"
 	stderrors "errors"
 
-	authv1 "github.com/freesoulcode/free-ecommerce/gen/go/proto/auth/v1"
 	appErrors "github.com/freesoulcode/free-ecommerce/backend/pkg/errors"
 	applicationcredential "github.com/freesoulcode/free-ecommerce/backend/services/auth-service/internal/application/credential"
+	authv1 "github.com/freesoulcode/free-ecommerce/gen/go/proto/auth/v1"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 )
@@ -14,10 +14,11 @@ import (
 type AuthServiceServer struct {
 	authv1.UnimplementedAuthServiceServer
 	createPasswordCredentialService *applicationcredential.CreatePasswordCredentialService
+	loginService                    *applicationcredential.LoginService
 }
 
-func NewAuthServiceServer(createPasswordCredentialService *applicationcredential.CreatePasswordCredentialService) *AuthServiceServer {
-	return &AuthServiceServer{createPasswordCredentialService: createPasswordCredentialService}
+func NewAuthServiceServer(createPasswordCredentialService *applicationcredential.CreatePasswordCredentialService, loginService *applicationcredential.LoginService) *AuthServiceServer {
+	return &AuthServiceServer{createPasswordCredentialService: createPasswordCredentialService, loginService: loginService}
 }
 
 func (s *AuthServiceServer) CreatePasswordCredential(ctx context.Context, req *authv1.CreatePasswordCredentialRequest) (*authv1.CreatePasswordCredentialResponse, error) {
@@ -43,6 +44,35 @@ func (s *AuthServiceServer) CreatePasswordCredential(ctx context.Context, req *a
 	}, nil
 }
 
+func (s *AuthServiceServer) Login(ctx context.Context, req *authv1.LoginRequest) (*authv1.LoginResponse, error) {
+	if req == nil {
+		return nil, status.Error(codes.InvalidArgument, "request is required")
+	}
+
+	result, err := s.loginService.Execute(ctx, applicationcredential.LoginInput{
+		Email:     req.GetEmail(),
+		Password:  req.GetPassword(),
+		DeviceID:  req.GetDeviceId(),
+		UserAgent: req.GetUserAgent(),
+		ClientIP:  req.GetClientIp(),
+	})
+	if err != nil {
+		return nil, toGRPCError(err)
+	}
+
+	return &authv1.LoginResponse{
+		UserId:                result.UserID,
+		Email:                 result.Email,
+		Phone:                 result.Phone,
+		AccessToken:           result.AccessToken,
+		RefreshToken:          result.RefreshToken,
+		TokenType:             result.TokenType,
+		AccessTokenExpiresAt:  result.AccessTokenExpiresAt.Unix(),
+		RefreshTokenExpiresAt: result.RefreshTokenExpiresAt.Unix(),
+		RefreshSessionId:      result.RefreshSessionID,
+	}, nil
+}
+
 func toGRPCError(err error) error {
 	var appErr *appErrors.Error
 	if !stderrors.As(err, &appErr) {
@@ -51,10 +81,14 @@ func toGRPCError(err error) error {
 
 	switch appErr.Code {
 	case appErrors.CodeInvalidArgument,
+		appErrors.Code("AUTH_EMAIL_REQUIRED"),
+		appErrors.Code("AUTH_PASSWORD_REQUIRED"),
 		appErrors.Code("AUTH_USER_ID_REQUIRED"),
 		appErrors.Code("AUTH_IDENTIFIER_REQUIRED"),
 		appErrors.Code("AUTH_PASSWORD_TOO_SHORT"):
 		return status.Error(codes.InvalidArgument, appErr.Message)
+	case appErrors.CodeUnauthorized:
+		return status.Error(codes.Unauthenticated, appErr.Message)
 	case appErrors.Code("AUTH_CREDENTIAL_ALREADY_EXISTS"),
 		appErrors.Code("AUTH_EMAIL_ALREADY_EXISTS"),
 		appErrors.Code("AUTH_PHONE_ALREADY_EXISTS"):

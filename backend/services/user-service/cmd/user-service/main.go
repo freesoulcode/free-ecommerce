@@ -14,8 +14,8 @@ import (
 	servicemysql "github.com/freesoulcode/free-ecommerce/backend/services/user-service/internal/infrastructure/mysql"
 	servicepersistence "github.com/freesoulcode/free-ecommerce/backend/services/user-service/internal/infrastructure/persistence"
 	userv1 "github.com/freesoulcode/free-ecommerce/gen/go/proto/user/v1"
-	"google.golang.org/grpc"
 	"go.uber.org/zap"
+	"google.golang.org/grpc"
 )
 
 func main() {
@@ -46,7 +46,8 @@ func main() {
 	userRepo := servicepersistence.NewUserRepository(db)
 	createUserService := applicationuser.NewCreateUserService(userRepo, idGenerator, nil)
 	deleteUserService := applicationuser.NewDeleteUserService(userRepo)
-	userGRPCServer := servicegrpc.NewUserServiceServer(createUserService, deleteUserService)
+	getUserService := applicationuser.NewGetUserService(userRepo)
+	userGRPCServer := servicegrpc.NewUserServiceServer(createUserService, deleteUserService, getUserService)
 
 	grpcListener, err := net.Listen("tcp", cfg.GRPCAddr)
 	if err != nil {

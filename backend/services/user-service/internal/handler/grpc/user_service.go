@@ -16,10 +16,11 @@ type UserServiceServer struct {
 
 	createUserService *applicationuser.CreateUserService
 	deleteUserService *applicationuser.DeleteUserService
+	getUserService    *applicationuser.GetUserService
 }
 
-func NewUserServiceServer(createUserService *applicationuser.CreateUserService, deleteUserService *applicationuser.DeleteUserService) *UserServiceServer {
-	return &UserServiceServer{createUserService: createUserService, deleteUserService: deleteUserService}
+func NewUserServiceServer(createUserService *applicationuser.CreateUserService, deleteUserService *applicationuser.DeleteUserService, getUserService *applicationuser.GetUserService) *UserServiceServer {
+	return &UserServiceServer{createUserService: createUserService, deleteUserService: deleteUserService, getUserService: getUserService}
 }
 
 func (s *UserServiceServer) CreateUser(ctx context.Context, req *userv1.CreateUserRequest) (*userv1.CreateUserResponse, error) {
@@ -57,6 +58,27 @@ func (s *UserServiceServer) DeleteUser(ctx context.Context, req *userv1.DeleteUs
 	}
 
 	return &userv1.DeleteUserResponse{}, nil
+}
+
+func (s *UserServiceServer) GetUser(ctx context.Context, req *userv1.GetUserRequest) (*userv1.GetUserResponse, error) {
+	if req == nil {
+		return nil, status.Error(codes.InvalidArgument, "request is required")
+	}
+
+	user, err := s.getUserService.Execute(ctx, req.GetId())
+	if err != nil {
+		return nil, toGRPCError(err)
+	}
+
+	return &userv1.GetUserResponse{
+		Id:            user.ID,
+		Email:         user.Email,
+		Phone:         user.Phone,
+		Nickname:      user.Nickname,
+		Status:        user.Status,
+		EmailVerified: user.EmailVerified,
+		PhoneVerified: user.PhoneVerified,
+	}, nil
 }
 
 func toGRPCError(err error) error {

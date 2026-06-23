@@ -4,8 +4,8 @@ import (
 	"context"
 	"strings"
 
-	appErrors "github.com/freesoulcode/free-ecommerce/backend/pkg/errors"
 	applicationbuyer "github.com/freesoulcode/free-ecommerce/backend/apis/buyer-api/internal/application/buyer"
+	appErrors "github.com/freesoulcode/free-ecommerce/backend/pkg/errors"
 	userv1 "github.com/freesoulcode/free-ecommerce/gen/go/proto/user/v1"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
@@ -65,6 +65,23 @@ func (c *Client) DeleteUser(ctx context.Context, id int64) error {
 	}
 
 	return nil
+}
+
+func (c *Client) GetUser(ctx context.Context, id int64) (*applicationbuyer.Buyer, error) {
+	resp, err := c.client.GetUser(ctx, &userv1.GetUserRequest{Id: id})
+	if err != nil {
+		return nil, toAppError(err)
+	}
+
+	return &applicationbuyer.Buyer{
+		ID:            resp.GetId(),
+		Email:         resp.GetEmail(),
+		Phone:         resp.GetPhone(),
+		Nickname:      resp.GetNickname(),
+		Status:        resp.GetStatus(),
+		EmailVerified: resp.GetEmailVerified(),
+		PhoneVerified: resp.GetPhoneVerified(),
+	}, nil
 }
 
 func toAppError(err error) error {

@@ -47,6 +47,31 @@ func (c *Client) CreatePasswordCredential(ctx context.Context, input application
 	return nil
 }
 
+func (c *Client) Login(ctx context.Context, input applicationbuyer.LoginBuyerInput) (*applicationbuyer.LoginAuthResult, error) {
+	resp, err := c.client.Login(ctx, &authv1.LoginRequest{
+		Email:     input.Email,
+		Password:  input.Password,
+		DeviceId:  input.DeviceID,
+		UserAgent: input.UserAgent,
+		ClientIp:  input.ClientIP,
+	})
+	if err != nil {
+		return nil, toAppError(err)
+	}
+
+	return &applicationbuyer.LoginAuthResult{
+		UserID:                resp.GetUserId(),
+		Email:                 resp.GetEmail(),
+		Phone:                 resp.GetPhone(),
+		AccessToken:           resp.GetAccessToken(),
+		RefreshToken:          resp.GetRefreshToken(),
+		TokenType:             resp.GetTokenType(),
+		AccessTokenExpiresAt:  resp.GetAccessTokenExpiresAt(),
+		RefreshTokenExpiresAt: resp.GetRefreshTokenExpiresAt(),
+		RefreshSessionID:      resp.GetRefreshSessionId(),
+	}, nil
+}
+
 func toAppError(err error) error {
 	st, ok := status.FromError(err)
 	if !ok {
@@ -59,6 +84,9 @@ func toAppError(err error) error {
 		if strings.Contains(message, "password") {
 			return appErrors.New(appErrors.Code("AUTH_PASSWORD_INVALID"), message, 400)
 		}
+		if strings.Contains(message, "email") {
+			return appErrors.New(appErrors.Code("AUTH_EMAIL_INVALID"), message, 400)
+		}
 		return appErrors.InvalidArgument(message)
 	case codes.AlreadyExists:
 		if strings.Contains(message, "email") {
@@ -68,6 +96,8 @@ func toAppError(err error) error {
 			return appErrors.New(appErrors.Code("AUTH_PHONE_ALREADY_EXISTS"), message, 400)
 		}
 		return appErrors.New(appErrors.Code("AUTH_CREDENTIAL_ALREADY_EXISTS"), message, 400)
+	case codes.Unauthenticated:
+		return appErrors.Unauthorized(message)
 	default:
 		return appErrors.Internal(message)
 	}

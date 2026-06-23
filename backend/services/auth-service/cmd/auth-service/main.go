@@ -4,17 +4,19 @@ import (
 	"log"
 	"net"
 
+	sharedlogger "github.com/freesoulcode/free-ecommerce/backend/pkg/logger"
 	applicationcredential "github.com/freesoulcode/free-ecommerce/backend/services/auth-service/internal/application/credential"
 	servicegrpc "github.com/freesoulcode/free-ecommerce/backend/services/auth-service/internal/handler/grpc"
-	sharedlogger "github.com/freesoulcode/free-ecommerce/backend/pkg/logger"
-	authv1 "github.com/freesoulcode/free-ecommerce/gen/go/proto/auth/v1"
 	servicehttp "github.com/freesoulcode/free-ecommerce/backend/services/auth-service/internal/handler/http"
 	serviceconfig "github.com/freesoulcode/free-ecommerce/backend/services/auth-service/internal/infrastructure/config"
 	servicecrypto "github.com/freesoulcode/free-ecommerce/backend/services/auth-service/internal/infrastructure/crypto"
+	serviceid "github.com/freesoulcode/free-ecommerce/backend/services/auth-service/internal/infrastructure/id"
 	servicemysql "github.com/freesoulcode/free-ecommerce/backend/services/auth-service/internal/infrastructure/mysql"
 	servicepersistence "github.com/freesoulcode/free-ecommerce/backend/services/auth-service/internal/infrastructure/persistence"
-	"google.golang.org/grpc"
+	servicetoken "github.com/freesoulcode/free-ecommerce/backend/services/auth-service/internal/infrastructure/token"
+	authv1 "github.com/freesoulcode/free-ecommerce/gen/go/proto/auth/v1"
 	"go.uber.org/zap"
+	"google.golang.org/grpc"
 )
 
 func main() {
@@ -39,8 +41,31 @@ func main() {
 
 	credentialRepo := servicepersistence.NewPasswordCredentialRepository(db)
 	hasher := servicecrypto.NewArgon2idHasher()
+	idGenerator, err := serviceid.NewSnowflakeGenerator(cfg.Snowflake.Node)
+	if err != nil {
+		logger.Fatal("init snowflake generator", zap.Error(err))
+	}
+
+	accessSigner, err := servicetoken.NewRS256Signer(cfg.JWT.RSAPrivateKeyPEM)
+	if err != nil {
+		logger.Fatal("init jwt signer", zap.Error(err))
+	}
+	refreshTokenGenerator := servicetoken.NewRandomTokenGenerator()
 	createPasswordCredentialService := applicationcredential.NewCreatePasswordCredentialService(credentialRepo, hasher, nil)
-	authGRPCServer := servicegrpc.NewAuthServiceServer(createPasswordCredentialService)
+	loginService := applicationcredential.NewLoginService(
+		credentialRepo,
+		credentialRepo,
+		hasher,
+		idGenerator,
+		accessSigner,
+		refreshTokenGenerator,
+		cfg.JWT.Issuer,
+		cfg.JWT.Audience,
+		cfg.JWT.AccessTokenTTL,
+		cfg.JWT.RefreshTokenTTL,
+		nil,
+	)
+	authGRPCServer := servicegrpc.NewAuthServiceServer(createPasswordCredentialService, loginService)
 
 	grpcListener, err := net.Listen("tcp", cfg.GRPCAddr)
 	if err != nil {
