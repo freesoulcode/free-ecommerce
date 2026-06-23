@@ -1,0 +1,23 @@
+syntax = "proto3";
+
+package auth.v1;
+
+option go_package = "github.com/freesoulcode/free-ecommerce/gen/go/proto/auth/v1;authv1";
+
+service AuthService {
+  rpc CreatePasswordCredential(CreatePasswordCredentialRequest) returns (CreatePasswordCredentialResponse);
+}
+
+message CreatePasswordCredentialRequest {
+  int64 user_id = 1;
+  string email = 2;
+  string phone = 3;
+  string password = 4;
+}
+
+message CreatePasswordCredentialResponse {
+  int64 user_id = 1;
+  string email = 2;
+  string phone = 3;
+  string password_algo = 4;
+}

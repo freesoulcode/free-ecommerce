@@ -2,10 +2,18 @@ package main
 
 import (
 	"log"
+	"net"
 
+	applicationcredential "github.com/freesoulcode/free-ecommerce/backend/services/auth-service/internal/application/credential"
+	servicegrpc "github.com/freesoulcode/free-ecommerce/backend/services/auth-service/internal/handler/grpc"
 	sharedlogger "github.com/freesoulcode/free-ecommerce/backend/pkg/logger"
+	authv1 "github.com/freesoulcode/free-ecommerce/gen/go/proto/auth/v1"
 	servicehttp "github.com/freesoulcode/free-ecommerce/backend/services/auth-service/internal/handler/http"
 	serviceconfig "github.com/freesoulcode/free-ecommerce/backend/services/auth-service/internal/infrastructure/config"
+	servicecrypto "github.com/freesoulcode/free-ecommerce/backend/services/auth-service/internal/infrastructure/crypto"
+	servicemysql "github.com/freesoulcode/free-ecommerce/backend/services/auth-service/internal/infrastructure/mysql"
+	servicepersistence "github.com/freesoulcode/free-ecommerce/backend/services/auth-service/internal/infrastructure/persistence"
+	"google.golang.org/grpc"
 	"go.uber.org/zap"
 )
 
@@ -20,9 +28,42 @@ func main() {
 		_ = logger.Sync()
 	}()
 
+	if err := servicemysql.Migrate(cfg.MySQL.DSN); err != nil {
+		logger.Fatal("run mysql migrations", zap.Error(err))
+	}
+
+	db, err := servicemysql.Open(cfg.MySQL.DSN)
+	if err != nil {
+		logger.Fatal("open mysql", zap.Error(err))
+	}
+
+	credentialRepo := servicepersistence.NewPasswordCredentialRepository(db)
+	hasher := servicecrypto.NewArgon2idHasher()
+	createPasswordCredentialService := applicationcredential.NewCreatePasswordCredentialService(credentialRepo, hasher, nil)
+	authGRPCServer := servicegrpc.NewAuthServiceServer(createPasswordCredentialService)
+
+	grpcListener, err := net.Listen("tcp", cfg.GRPCAddr)
+	if err != nil {
+		logger.Fatal("listen grpc", zap.Error(err))
+	}
+
+	grpcServer := grpc.NewServer()
+	authv1.RegisterAuthServiceServer(grpcServer, authGRPCServer)
+
+	go func() {
+		logger.Info("starting grpc server",
+			zap.String("addr", cfg.GRPCAddr),
+			zap.String("service", cfg.ServiceName),
+		)
+		if err := grpcServer.Serve(grpcListener); err != nil {
+			logger.Fatal("run grpc server", zap.Error(err))
+		}
+	}()
+
 	router := servicehttp.NewRouter(servicehttp.RouterParams{})
 	logger.Info("starting http server",
 		zap.String("addr", cfg.HTTPAddr),
+		zap.String("grpc_addr", cfg.GRPCAddr),
 		zap.String("service", cfg.ServiceName),
 	)
 
