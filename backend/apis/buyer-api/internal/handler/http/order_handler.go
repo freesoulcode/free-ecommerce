@@ -36,13 +36,14 @@ func (h *OrderHandler) RegisterRoutes(router *gin.Engine) {
 	router.POST("/api/v1/buyers/:buyerID/orders", h.submit)
 	router.GET("/api/v1/buyers/:buyerID/orders", h.list)
 	router.GET("/api/v1/buyers/:buyerID/orders/:orderGroupID", h.detail)
+	router.POST("/api/v1/buyers/:buyerID/shop-orders/:shopOrderID/receive", h.markReceived)
 }
 
 func (h *MerchantOrderHandler) RegisterRoutes(router *gin.Engine) {
 	router.GET("/api/v1/shops/:shopID/orders", h.list)
 	router.GET("/api/v1/shops/:shopID/orders/:shopOrderID", h.detail)
 	router.POST("/api/v1/shops/:shopID/orders/:shopOrderID/processing", h.markProcessing)
-	router.POST("/api/v1/shops/:shopID/orders/:shopOrderID/complete", h.markCompleted)
+	router.POST("/api/v1/shops/:shopID/orders/:shopOrderID/ship", h.markShipped)
 }
 
 func (h *OrderHandler) submit(c *gin.Context) {
@@ -92,6 +93,23 @@ func (h *OrderHandler) detail(c *gin.Context) {
 		return
 	}
 	group, err := h.service.Detail(c.Request.Context(), buyerID, orderGroupID)
+	if err != nil {
+		httpx.Error(c, err)
+		return
+	}
+	httpx.OK(c, gin.H{"order_group": orderGroupDetailResponse(group)})
+}
+
+func (h *OrderHandler) markReceived(c *gin.Context) {
+	buyerID, ok := parseInt64PathParam(c, "buyerID")
+	if !ok {
+		return
+	}
+	shopOrderID, ok := parseInt64PathParam(c, "shopOrderID")
+	if !ok {
+		return
+	}
+	group, err := h.service.MarkReceived(c.Request.Context(), buyerID, shopOrderID)
 	if err != nil {
 		httpx.Error(c, err)
 		return
@@ -152,7 +170,7 @@ func (h *MerchantOrderHandler) markProcessing(c *gin.Context) {
 	httpx.OK(c, gin.H{"shop_order": merchantShopOrderDetailResponse(shopOrder)})
 }
 
-func (h *MerchantOrderHandler) markCompleted(c *gin.Context) {
+func (h *MerchantOrderHandler) markShipped(c *gin.Context) {
 	shopID, ok := parseInt64PathParam(c, "shopID")
 	if !ok {
 		return
@@ -161,7 +179,7 @@ func (h *MerchantOrderHandler) markCompleted(c *gin.Context) {
 	if !ok {
 		return
 	}
-	shopOrder, err := h.service.MarkCompleted(c.Request.Context(), shopID, shopOrderID)
+	shopOrder, err := h.service.MarkShipped(c.Request.Context(), shopID, shopOrderID)
 	if err != nil {
 		httpx.Error(c, err)
 		return

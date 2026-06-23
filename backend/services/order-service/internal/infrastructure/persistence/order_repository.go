@@ -381,7 +381,7 @@ func (r *OrderRepository) MarkMerchantShopOrderProcessing(ctx context.Context, s
 	return r.GetMerchantShopOrderDetail(ctx, shopID, shopOrderID)
 }
 
-func (r *OrderRepository) MarkMerchantShopOrderCompleted(ctx context.Context, shopID, shopOrderID int64, updatedAt time.Time) (*domainorder.MerchantShopOrderDetail, error) {
+func (r *OrderRepository) MarkMerchantShopOrderShipped(ctx context.Context, shopID, shopOrderID int64, updatedAt time.Time) (*domainorder.MerchantShopOrderDetail, error) {
 	err := r.db.WithContext(ctx).Transaction(func(tx *gorm.DB) error {
 		shopOrderModel, err := r.getShopOrderModelForUpdate(tx, shopID, shopOrderID)
 		if err != nil {
@@ -393,34 +393,34 @@ func (r *OrderRepository) MarkMerchantShopOrderCompleted(ctx context.Context, sh
 		}
 
 		switch shopOrderModel.Status {
-		case domainorder.StatusCompleted:
+		case domainorder.StatusShipped:
 			return nil
 		case domainorder.StatusMerchantProcessing:
 		default:
-			return appErrors.InvalidArgument("shop order status does not allow completion")
+			return appErrors.InvalidArgument("shop order status does not allow shipment")
 		}
 
-		if groupModel.Status != domainorder.StatusMerchantProcessing && groupModel.Status != domainorder.StatusCompleted {
-			return appErrors.InvalidArgument("order group status does not allow completion")
+		if groupModel.Status != domainorder.StatusMerchantProcessing && groupModel.Status != domainorder.StatusShipped {
+			return appErrors.InvalidArgument("order group status does not allow shipment")
 		}
 
 		if shopOrderModel.Status == domainorder.StatusMerchantProcessing {
-			if err := tx.Model(&ShopOrderModel{}).Where("id = ? AND shop_id = ?", shopOrderID, shopID).Updates(map[string]any{"status": domainorder.StatusCompleted, "updated_at": updatedAt}).Error; err != nil {
-				return fmt.Errorf("mark merchant shop order completed: %w", err)
+			if err := tx.Model(&ShopOrderModel{}).Where("id = ? AND shop_id = ?", shopOrderID, shopID).Updates(map[string]any{"status": domainorder.StatusShipped, "updated_at": updatedAt}).Error; err != nil {
+				return fmt.Errorf("mark merchant shop order shipped: %w", err)
 			}
 		}
 
 		var remaining int64
-		if err := tx.Model(&ShopOrderModel{}).Where("order_group_id = ? AND status <> ?", shopOrderModel.OrderGroupID, domainorder.StatusCompleted).Count(&remaining).Error; err != nil {
-			return fmt.Errorf("count remaining shop orders: %w", err)
+		if err := tx.Model(&ShopOrderModel{}).Where("order_group_id = ? AND status NOT IN ?", shopOrderModel.OrderGroupID, []string{domainorder.StatusShipped, domainorder.StatusReceived, domainorder.StatusCompleted}).Count(&remaining).Error; err != nil {
+			return fmt.Errorf("count remaining unshipped shop orders: %w", err)
 		}
 		groupStatus := domainorder.StatusMerchantProcessing
 		if remaining == 0 {
-			groupStatus = domainorder.StatusCompleted
+			groupStatus = domainorder.StatusShipped
 		}
 		if groupModel.Status != groupStatus {
 			if err := tx.Model(&OrderGroupModel{}).Where("id = ?", groupModel.ID).Updates(map[string]any{"status": groupStatus, "updated_at": updatedAt}).Error; err != nil {
-				return fmt.Errorf("update order group completion status: %w", err)
+				return fmt.Errorf("update order group shipment status: %w", err)
 			}
 		}
 		return nil
@@ -429,6 +429,72 @@ func (r *OrderRepository) MarkMerchantShopOrderCompleted(ctx context.Context, sh
 		return nil, err
 	}
 	return r.GetMerchantShopOrderDetail(ctx, shopID, shopOrderID)
+}
+
+func (r *OrderRepository) MarkBuyerShopOrderReceived(ctx context.Context, userID, shopOrderID int64, updatedAt time.Time) (*domainorder.Group, error) {
+	var orderGroupID int64
+	err := r.db.WithContext(ctx).Transaction(func(tx *gorm.DB) error {
+		shopOrderModel, err := r.getShopOrderModelByUserForUpdate(tx, userID, shopOrderID)
+		if err != nil {
+			return err
+		}
+		orderGroupID = shopOrderModel.OrderGroupID
+		groupModel, err := r.getOrderGroupModelForUpdate(tx, userID, shopOrderModel.OrderGroupID)
+		if err != nil {
+			return err
+		}
+
+		switch shopOrderModel.Status {
+		case domainorder.StatusReceived, domainorder.StatusCompleted:
+			return nil
+		case domainorder.StatusShipped:
+		default:
+			return appErrors.InvalidArgument("shop order status does not allow receipt confirmation")
+		}
+
+		if groupModel.Status != domainorder.StatusMerchantProcessing && groupModel.Status != domainorder.StatusShipped && groupModel.Status != domainorder.StatusCompleted {
+			return appErrors.InvalidArgument("order group status does not allow receipt confirmation")
+		}
+
+		if err := tx.Model(&ShopOrderModel{}).Where("id = ? AND user_id = ?", shopOrderID, userID).Updates(map[string]any{"status": domainorder.StatusReceived, "updated_at": updatedAt}).Error; err != nil {
+			return fmt.Errorf("mark buyer shop order received: %w", err)
+		}
+
+		var remaining int64
+		if err := tx.Model(&ShopOrderModel{}).Where("order_group_id = ? AND status NOT IN ?", shopOrderModel.OrderGroupID, []string{domainorder.StatusReceived, domainorder.StatusCompleted}).Count(&remaining).Error; err != nil {
+			return fmt.Errorf("count remaining unreceived shop orders: %w", err)
+		}
+		if remaining == 0 {
+			if err := tx.Model(&ShopOrderModel{}).Where("order_group_id = ? AND status = ?", shopOrderModel.OrderGroupID, domainorder.StatusReceived).Updates(map[string]any{"status": domainorder.StatusCompleted, "updated_at": updatedAt}).Error; err != nil {
+				return fmt.Errorf("auto complete received shop orders: %w", err)
+			}
+			if groupModel.Status != domainorder.StatusCompleted {
+				if err := tx.Model(&OrderGroupModel{}).Where("id = ? AND user_id = ?", groupModel.ID, userID).Updates(map[string]any{"status": domainorder.StatusCompleted, "updated_at": updatedAt}).Error; err != nil {
+					return fmt.Errorf("auto complete order group: %w", err)
+				}
+			}
+			return nil
+		}
+
+		var remainingUnshipped int64
+		if err := tx.Model(&ShopOrderModel{}).Where("order_group_id = ? AND status NOT IN ?", shopOrderModel.OrderGroupID, []string{domainorder.StatusShipped, domainorder.StatusReceived, domainorder.StatusCompleted}).Count(&remainingUnshipped).Error; err != nil {
+			return fmt.Errorf("count remaining unshipped shop orders after receive: %w", err)
+		}
+		groupStatus := domainorder.StatusMerchantProcessing
+		if remainingUnshipped == 0 {
+			groupStatus = domainorder.StatusShipped
+		}
+		if groupModel.Status != groupStatus {
+			if err := tx.Model(&OrderGroupModel{}).Where("id = ? AND user_id = ?", groupModel.ID, userID).Updates(map[string]any{"status": groupStatus, "updated_at": updatedAt}).Error; err != nil {
+				return fmt.Errorf("update order group receipt status: %w", err)
+			}
+		}
+		return nil
+	})
+	if err != nil {
+		return nil, err
+	}
+	return r.GetBuyerOrderGroupDetail(ctx, userID, orderGroupID)
 }
 
 func (r *OrderRepository) GetOrderGroupPaymentInfo(ctx context.Context, userID, orderGroupID int64) (*domainorder.PaymentInfo, error) {
@@ -588,6 +654,17 @@ func (r *OrderRepository) getShopOrderModelForUpdate(tx *gorm.DB, shopID, shopOr
 			return ShopOrderModel{}, appErrors.NotFound("shop order not found")
 		}
 		return ShopOrderModel{}, fmt.Errorf("find shop order for update: %w", err)
+	}
+	return shopOrderModel, nil
+}
+
+func (r *OrderRepository) getShopOrderModelByUserForUpdate(tx *gorm.DB, userID, shopOrderID int64) (ShopOrderModel, error) {
+	var shopOrderModel ShopOrderModel
+	if err := tx.Where("id = ? AND user_id = ?", shopOrderID, userID).Take(&shopOrderModel).Error; err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return ShopOrderModel{}, appErrors.NotFound("shop order not found")
+		}
+		return ShopOrderModel{}, fmt.Errorf("find shop order for buyer update: %w", err)
 	}
 	return shopOrderModel, nil
 }

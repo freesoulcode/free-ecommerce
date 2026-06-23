@@ -101,7 +101,7 @@ func (s *CreatePaymentOrderService) Execute(ctx context.Context, input CreatePay
 		return nil, err
 	}
 	now := s.now().UTC()
-	if info.Status == "closed" || info.Status == "cancelled" || info.Status == "completed" || info.Status == "merchant_processing" {
+	if info.Status == "closed" || info.Status == "cancelled" || info.Status == "merchant_processing" || info.Status == "shipped" || info.Status == "received" || info.Status == "completed" {
 		return nil, appErrors.InvalidArgument("order group status does not allow payment")
 	}
 	if !info.PaymentDeadlineAt.IsZero() && now.After(info.PaymentDeadlineAt) {

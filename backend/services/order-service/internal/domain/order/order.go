@@ -6,6 +6,8 @@ const (
 	StatusPendingPayment     = "pending_payment"
 	StatusPaid               = "paid"
 	StatusMerchantProcessing = "merchant_processing"
+	StatusShipped            = "shipped"
+	StatusReceived           = "received"
 	StatusCompleted          = "completed"
 	StatusCancelled          = "cancelled"
 	StatusClosed             = "closed"

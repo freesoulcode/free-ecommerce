@@ -188,10 +188,11 @@ type OrderServiceClient interface {
 	SubmitOrder(ctx context.Context, input SubmitOrderInput) (*OrderGroupDetail, error)
 	ListBuyerOrderGroups(ctx context.Context, input ListOrdersInput) (*ListOrdersResult, error)
 	GetBuyerOrderGroupDetail(ctx context.Context, userID, orderGroupID int64) (*OrderGroupDetail, error)
+	MarkBuyerShopOrderReceived(ctx context.Context, userID, shopOrderID int64) (*OrderGroupDetail, error)
 	ListMerchantShopOrders(ctx context.Context, input ListMerchantShopOrdersInput) (*ListMerchantShopOrdersResult, error)
 	GetMerchantShopOrderDetail(ctx context.Context, shopID, shopOrderID int64) (*MerchantShopOrderDetail, error)
 	MarkMerchantShopOrderProcessing(ctx context.Context, shopID, shopOrderID int64) (*MerchantShopOrderDetail, error)
-	MarkMerchantShopOrderCompleted(ctx context.Context, shopID, shopOrderID int64) (*MerchantShopOrderDetail, error)
+	MarkMerchantShopOrderShipped(ctx context.Context, shopID, shopOrderID int64) (*MerchantShopOrderDetail, error)
 }
 
 type OrderBuyerService struct{ client OrderServiceClient }
@@ -227,6 +228,13 @@ func (s *OrderBuyerService) Detail(ctx context.Context, userID, orderGroupID int
 	return s.client.GetBuyerOrderGroupDetail(ctx, userID, orderGroupID)
 }
 
+func (s *OrderBuyerService) MarkReceived(ctx context.Context, userID, shopOrderID int64) (*OrderGroupDetail, error) {
+	if s.client == nil {
+		return nil, appErrors.Internal("order service is not configured")
+	}
+	return s.client.MarkBuyerShopOrderReceived(ctx, userID, shopOrderID)
+}
+
 func (s *MerchantOrderBuyerService) List(ctx context.Context, input ListMerchantShopOrdersInput) (*ListMerchantShopOrdersResult, error) {
 	if s.client == nil {
 		return nil, appErrors.Internal("order service is not configured")
@@ -248,9 +256,9 @@ func (s *MerchantOrderBuyerService) MarkProcessing(ctx context.Context, shopID, 
 	return s.client.MarkMerchantShopOrderProcessing(ctx, shopID, shopOrderID)
 }
 
-func (s *MerchantOrderBuyerService) MarkCompleted(ctx context.Context, shopID, shopOrderID int64) (*MerchantShopOrderDetail, error) {
+func (s *MerchantOrderBuyerService) MarkShipped(ctx context.Context, shopID, shopOrderID int64) (*MerchantShopOrderDetail, error) {
 	if s.client == nil {
 		return nil, appErrors.Internal("order service is not configured")
 	}
-	return s.client.MarkMerchantShopOrderCompleted(ctx, shopID, shopOrderID)
+	return s.client.MarkMerchantShopOrderShipped(ctx, shopID, shopOrderID)
 }

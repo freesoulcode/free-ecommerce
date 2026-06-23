@@ -60,6 +60,14 @@ func (c *Client) GetBuyerOrderGroupDetail(ctx context.Context, userID, orderGrou
 	return toOrderGroupDetail(resp.GetOrderGroup()), nil
 }
 
+func (c *Client) MarkBuyerShopOrderReceived(ctx context.Context, userID, shopOrderID int64) (*applicationbuyer.OrderGroupDetail, error) {
+	resp, err := c.client.MarkBuyerShopOrderReceived(ctx, &orderv1.MarkBuyerShopOrderReceivedRequest{UserId: userID, ShopOrderId: shopOrderID})
+	if err != nil {
+		return nil, toAppError(err)
+	}
+	return toOrderGroupDetail(resp.GetOrderGroup()), nil
+}
+
 func (c *Client) ListMerchantShopOrders(ctx context.Context, input applicationbuyer.ListMerchantShopOrdersInput) (*applicationbuyer.ListMerchantShopOrdersResult, error) {
 	resp, err := c.client.ListMerchantShopOrders(ctx, &orderv1.ListMerchantShopOrdersRequest{ShopId: input.ShopID, Page: input.Page, PageSize: input.PageSize, Status: input.Status})
 	if err != nil {
@@ -88,8 +96,8 @@ func (c *Client) MarkMerchantShopOrderProcessing(ctx context.Context, shopID, sh
 	return toMerchantShopOrderDetail(resp.GetShopOrder()), nil
 }
 
-func (c *Client) MarkMerchantShopOrderCompleted(ctx context.Context, shopID, shopOrderID int64) (*applicationbuyer.MerchantShopOrderDetail, error) {
-	resp, err := c.client.MarkMerchantShopOrderCompleted(ctx, &orderv1.MarkMerchantShopOrderCompletedRequest{ShopId: shopID, ShopOrderId: shopOrderID})
+func (c *Client) MarkMerchantShopOrderShipped(ctx context.Context, shopID, shopOrderID int64) (*applicationbuyer.MerchantShopOrderDetail, error) {
+	resp, err := c.client.MarkMerchantShopOrderShipped(ctx, &orderv1.MarkMerchantShopOrderShippedRequest{ShopId: shopID, ShopOrderId: shopOrderID})
 	if err != nil {
 		return nil, toAppError(err)
 	}

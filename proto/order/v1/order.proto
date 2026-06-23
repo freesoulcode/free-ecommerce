@@ -11,7 +11,8 @@ service OrderService {
   rpc ListMerchantShopOrders(ListMerchantShopOrdersRequest) returns (ListMerchantShopOrdersResponse);
   rpc GetMerchantShopOrderDetail(GetMerchantShopOrderDetailRequest) returns (GetMerchantShopOrderDetailResponse);
   rpc MarkMerchantShopOrderProcessing(MarkMerchantShopOrderProcessingRequest) returns (MarkMerchantShopOrderProcessingResponse);
-  rpc MarkMerchantShopOrderCompleted(MarkMerchantShopOrderCompletedRequest) returns (MarkMerchantShopOrderCompletedResponse);
+  rpc MarkMerchantShopOrderShipped(MarkMerchantShopOrderShippedRequest) returns (MarkMerchantShopOrderShippedResponse);
+  rpc MarkBuyerShopOrderReceived(MarkBuyerShopOrderReceivedRequest) returns (MarkBuyerShopOrderReceivedResponse);
   rpc GetOrderGroupPaymentInfo(GetOrderGroupPaymentInfoRequest) returns (GetOrderGroupPaymentInfoResponse);
   rpc MarkOrderGroupPaid(MarkOrderGroupPaidRequest) returns (MarkOrderGroupPaidResponse);
   rpc CloseOrderGroupByPaymentTimeout(CloseOrderGroupByPaymentTimeoutRequest) returns (CloseOrderGroupByPaymentTimeoutResponse);
@@ -236,13 +237,22 @@ message MarkMerchantShopOrderProcessingResponse {
   MerchantShopOrderDetail shop_order = 1;
 }
 
-message MarkMerchantShopOrderCompletedRequest {
+message MarkMerchantShopOrderShippedRequest {
   int64 shop_id = 1;
   int64 shop_order_id = 2;
 }
 
-message MarkMerchantShopOrderCompletedResponse {
+message MarkMerchantShopOrderShippedResponse {
   MerchantShopOrderDetail shop_order = 1;
+}
+
+message MarkBuyerShopOrderReceivedRequest {
+  int64 user_id = 1;
+  int64 shop_order_id = 2;
+}
+
+message MarkBuyerShopOrderReceivedResponse {
+  OrderGroupDetail order_group = 1;
 }
 
 message GetOrderGroupPaymentInfoRequest {

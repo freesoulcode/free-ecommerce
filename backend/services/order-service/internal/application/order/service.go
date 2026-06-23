@@ -124,7 +124,12 @@ type MarkMerchantShopOrderProcessingService struct {
 	now  func() time.Time
 }
 
-type MarkMerchantShopOrderCompletedService struct {
+type MarkMerchantShopOrderShippedService struct {
+	repo domainorder.Repository
+	now  func() time.Time
+}
+
+type MarkBuyerShopOrderReceivedService struct {
 	repo domainorder.Repository
 	now  func() time.Time
 }
@@ -177,11 +182,18 @@ func NewMarkMerchantShopOrderProcessingService(repo domainorder.Repository, now 
 	return &MarkMerchantShopOrderProcessingService{repo: repo, now: now}
 }
 
-func NewMarkMerchantShopOrderCompletedService(repo domainorder.Repository, now func() time.Time) *MarkMerchantShopOrderCompletedService {
+func NewMarkMerchantShopOrderShippedService(repo domainorder.Repository, now func() time.Time) *MarkMerchantShopOrderShippedService {
 	if now == nil {
 		now = time.Now
 	}
-	return &MarkMerchantShopOrderCompletedService{repo: repo, now: now}
+	return &MarkMerchantShopOrderShippedService{repo: repo, now: now}
+}
+
+func NewMarkBuyerShopOrderReceivedService(repo domainorder.Repository, now func() time.Time) *MarkBuyerShopOrderReceivedService {
+	if now == nil {
+		now = time.Now
+	}
+	return &MarkBuyerShopOrderReceivedService{repo: repo, now: now}
 }
 
 func NewGetOrderGroupPaymentInfoService(repo domainorder.Repository, now func() time.Time) *GetOrderGroupPaymentInfoService {
@@ -431,14 +443,24 @@ func (s *MarkMerchantShopOrderProcessingService) Execute(ctx context.Context, sh
 	return s.repo.MarkMerchantShopOrderProcessing(ctx, shopID, shopOrderID, s.now().UTC())
 }
 
-func (s *MarkMerchantShopOrderCompletedService) Execute(ctx context.Context, shopID, shopOrderID int64) (*domainorder.MerchantShopOrderDetail, error) {
+func (s *MarkMerchantShopOrderShippedService) Execute(ctx context.Context, shopID, shopOrderID int64) (*domainorder.MerchantShopOrderDetail, error) {
 	if shopID <= 0 {
 		return nil, appErrors.InvalidArgument("shop id is required")
 	}
 	if shopOrderID <= 0 {
 		return nil, appErrors.InvalidArgument("shop order id is required")
 	}
-	return s.repo.MarkMerchantShopOrderCompleted(ctx, shopID, shopOrderID, s.now().UTC())
+	return s.repo.MarkMerchantShopOrderShipped(ctx, shopID, shopOrderID, s.now().UTC())
+}
+
+func (s *MarkBuyerShopOrderReceivedService) Execute(ctx context.Context, userID, shopOrderID int64) (*domainorder.Group, error) {
+	if userID <= 0 {
+		return nil, appErrors.InvalidArgument("user id is required")
+	}
+	if shopOrderID <= 0 {
+		return nil, appErrors.InvalidArgument("shop order id is required")
+	}
+	return s.repo.MarkBuyerShopOrderReceived(ctx, userID, shopOrderID, s.now().UTC())
 }
 
 func (s *GetOrderGroupPaymentInfoService) Execute(ctx context.Context, userID, orderGroupID int64) (*domainorder.PaymentInfo, error) {

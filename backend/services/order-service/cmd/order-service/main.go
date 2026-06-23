@@ -64,11 +64,12 @@ func main() {
 	listMerchantService := applicationorder.NewListMerchantShopOrdersService(repo)
 	getMerchantService := applicationorder.NewGetMerchantShopOrderDetailService(repo)
 	markProcessingSvc := applicationorder.NewMarkMerchantShopOrderProcessingService(repo, nil)
-	markCompletedSvc := applicationorder.NewMarkMerchantShopOrderCompletedService(repo, nil)
+	markShippedSvc := applicationorder.NewMarkMerchantShopOrderShippedService(repo, nil)
+	receiveShopOrderSvc := applicationorder.NewMarkBuyerShopOrderReceivedService(repo, nil)
 	getPaymentInfoService := applicationorder.NewGetOrderGroupPaymentInfoService(repo, nil)
 	markPaidService := applicationorder.NewMarkOrderGroupPaidService(repo, nil)
 	closeTimeoutService := applicationorder.NewCloseOrderGroupByPaymentTimeoutService(repo, nil)
-	orderGRPCServer := servicegrpc.NewOrderServiceServer(submitService, listService, getService, listMerchantService, getMerchantService, markProcessingSvc, markCompletedSvc, getPaymentInfoService, markPaidService, closeTimeoutService)
+	orderGRPCServer := servicegrpc.NewOrderServiceServer(submitService, listService, getService, listMerchantService, getMerchantService, markProcessingSvc, markShippedSvc, receiveShopOrderSvc, getPaymentInfoService, markPaidService, closeTimeoutService)
 
 	grpcListener, err := net.Listen("tcp", cfg.GRPCAddr)
 	if err != nil {

@@ -21,7 +21,8 @@ type OrderServiceServer struct {
 	listMerchantService *applicationorder.ListMerchantShopOrdersService
 	getMerchantService  *applicationorder.GetMerchantShopOrderDetailService
 	markProcessingSvc   *applicationorder.MarkMerchantShopOrderProcessingService
-	markCompletedSvc    *applicationorder.MarkMerchantShopOrderCompletedService
+	markShippedSvc      *applicationorder.MarkMerchantShopOrderShippedService
+	receiveShopOrderSvc *applicationorder.MarkBuyerShopOrderReceivedService
 	getPaymentInfo      *applicationorder.GetOrderGroupPaymentInfoService
 	markPaidService     *applicationorder.MarkOrderGroupPaidService
 	closeTimeoutService *applicationorder.CloseOrderGroupByPaymentTimeoutService
@@ -34,7 +35,8 @@ func NewOrderServiceServer(
 	listMerchantService *applicationorder.ListMerchantShopOrdersService,
 	getMerchantService *applicationorder.GetMerchantShopOrderDetailService,
 	markProcessingSvc *applicationorder.MarkMerchantShopOrderProcessingService,
-	markCompletedSvc *applicationorder.MarkMerchantShopOrderCompletedService,
+	markShippedSvc *applicationorder.MarkMerchantShopOrderShippedService,
+	receiveShopOrderSvc *applicationorder.MarkBuyerShopOrderReceivedService,
 	getPaymentInfo *applicationorder.GetOrderGroupPaymentInfoService,
 	markPaidService *applicationorder.MarkOrderGroupPaidService,
 	closeTimeoutService *applicationorder.CloseOrderGroupByPaymentTimeoutService,
@@ -46,7 +48,8 @@ func NewOrderServiceServer(
 		listMerchantService: listMerchantService,
 		getMerchantService:  getMerchantService,
 		markProcessingSvc:   markProcessingSvc,
-		markCompletedSvc:    markCompletedSvc,
+		markShippedSvc:      markShippedSvc,
+		receiveShopOrderSvc: receiveShopOrderSvc,
 		getPaymentInfo:      getPaymentInfo,
 		markPaidService:     markPaidService,
 		closeTimeoutService: closeTimeoutService,
@@ -153,16 +156,28 @@ func (s *OrderServiceServer) MarkMerchantShopOrderProcessing(ctx context.Context
 	return &orderv1.MarkMerchantShopOrderProcessingResponse{ShopOrder: toMerchantShopOrderDetailPB(shopOrder)}, nil
 }
 
-func (s *OrderServiceServer) MarkMerchantShopOrderCompleted(ctx context.Context, req *orderv1.MarkMerchantShopOrderCompletedRequest) (*orderv1.MarkMerchantShopOrderCompletedResponse, error) {
+func (s *OrderServiceServer) MarkMerchantShopOrderShipped(ctx context.Context, req *orderv1.MarkMerchantShopOrderShippedRequest) (*orderv1.MarkMerchantShopOrderShippedResponse, error) {
 	if req == nil {
 		return nil, status.Error(codes.InvalidArgument, "request is required")
 	}
 
-	shopOrder, err := s.markCompletedSvc.Execute(ctx, req.GetShopId(), req.GetShopOrderId())
+	shopOrder, err := s.markShippedSvc.Execute(ctx, req.GetShopId(), req.GetShopOrderId())
 	if err != nil {
 		return nil, toGRPCError(err)
 	}
-	return &orderv1.MarkMerchantShopOrderCompletedResponse{ShopOrder: toMerchantShopOrderDetailPB(shopOrder)}, nil
+	return &orderv1.MarkMerchantShopOrderShippedResponse{ShopOrder: toMerchantShopOrderDetailPB(shopOrder)}, nil
+}
+
+func (s *OrderServiceServer) MarkBuyerShopOrderReceived(ctx context.Context, req *orderv1.MarkBuyerShopOrderReceivedRequest) (*orderv1.MarkBuyerShopOrderReceivedResponse, error) {
+	if req == nil {
+		return nil, status.Error(codes.InvalidArgument, "request is required")
+	}
+
+	group, err := s.receiveShopOrderSvc.Execute(ctx, req.GetUserId(), req.GetShopOrderId())
+	if err != nil {
+		return nil, toGRPCError(err)
+	}
+	return &orderv1.MarkBuyerShopOrderReceivedResponse{OrderGroup: toOrderGroupDetailPB(group)}, nil
 }
 
 func (s *OrderServiceServer) GetOrderGroupPaymentInfo(ctx context.Context, req *orderv1.GetOrderGroupPaymentInfoRequest) (*orderv1.GetOrderGroupPaymentInfoResponse, error) {
