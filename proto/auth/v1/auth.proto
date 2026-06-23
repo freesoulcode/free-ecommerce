@@ -7,6 +7,8 @@ option go_package = "github.com/freesoulcode/free-ecommerce/gen/go/proto/auth/v1
 service AuthService {
   rpc CreatePasswordCredential(CreatePasswordCredentialRequest) returns (CreatePasswordCredentialResponse);
   rpc Login(LoginRequest) returns (LoginResponse);
+  rpc RefreshToken(RefreshTokenRequest) returns (RefreshTokenResponse);
+  rpc Logout(LogoutRequest) returns (LogoutResponse);
 }
 
 message CreatePasswordCredentialRequest {
@@ -41,4 +43,31 @@ message LoginResponse {
   int64 access_token_expires_at = 11;
   int64 refresh_token_expires_at = 12;
   int64 refresh_session_id = 13;
+}
+
+message RefreshTokenRequest {
+  string refresh_token = 1;
+  string device_id = 2;
+  string user_agent = 3;
+  string client_ip = 4;
+}
+
+message RefreshTokenResponse {
+  int64 user_id = 1;
+  string email = 2;
+  string phone = 3;
+  string access_token = 4;
+  string refresh_token = 5;
+  string token_type = 6;
+  int64 access_token_expires_at = 7;
+  int64 refresh_token_expires_at = 8;
+  int64 refresh_session_id = 9;
+}
+
+message LogoutRequest {
+  string refresh_token = 1;
+}
+
+message LogoutResponse {
+  int64 refresh_session_id = 1;
 }

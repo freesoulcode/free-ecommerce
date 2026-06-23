@@ -31,9 +31,20 @@ type loginBuyerRequest struct {
 	DeviceID string `json:"device_id"`
 }
 
+type refreshBuyerTokenRequest struct {
+	RefreshToken string `json:"refresh_token" binding:"required"`
+	DeviceID     string `json:"device_id"`
+}
+
+type logoutBuyerRequest struct {
+	RefreshToken string `json:"refresh_token" binding:"required"`
+}
+
 func (h *BuyerHandler) RegisterRoutes(router *gin.Engine) {
 	router.POST("/api/v1/buyers/register", h.register)
 	router.POST("/api/v1/buyers/login", h.login)
+	router.POST("/api/v1/buyers/token/refresh", h.refreshToken)
+	router.POST("/api/v1/buyers/logout", h.logout)
 }
 
 func (h *BuyerHandler) register(c *gin.Context) {
@@ -107,4 +118,57 @@ func (h *BuyerHandler) login(c *gin.Context) {
 		"refresh_token_expires_at": result.RefreshTokenExpiresAt,
 		"refresh_session_id":       result.RefreshSessionID,
 	})
+}
+
+func (h *BuyerHandler) refreshToken(c *gin.Context) {
+	var req refreshBuyerTokenRequest
+	if err := c.ShouldBindJSON(&req); err != nil {
+		httpx.Error(c, appErrors.InvalidArgument("invalid request body"))
+		return
+	}
+
+	result, err := h.loginBuyerService.Refresh(c.Request.Context(), applicationbuyer.RefreshBuyerTokenInput{
+		RefreshToken: req.RefreshToken,
+		DeviceID:     req.DeviceID,
+		UserAgent:    c.GetHeader("User-Agent"),
+		ClientIP:     c.ClientIP(),
+	})
+	if err != nil {
+		httpx.Error(c, err)
+		return
+	}
+
+	httpx.OK(c, gin.H{
+		"buyer": gin.H{
+			"id":             result.Buyer.ID,
+			"email":          result.Buyer.Email,
+			"phone":          result.Buyer.Phone,
+			"nickname":       result.Buyer.Nickname,
+			"status":         result.Buyer.Status,
+			"email_verified": result.Buyer.EmailVerified,
+			"phone_verified": result.Buyer.PhoneVerified,
+		},
+		"access_token":             result.AccessToken,
+		"refresh_token":            result.RefreshToken,
+		"token_type":               result.TokenType,
+		"access_token_expires_at":  result.AccessTokenExpiresAt,
+		"refresh_token_expires_at": result.RefreshTokenExpiresAt,
+		"refresh_session_id":       result.RefreshSessionID,
+	})
+}
+
+func (h *BuyerHandler) logout(c *gin.Context) {
+	var req logoutBuyerRequest
+	if err := c.ShouldBindJSON(&req); err != nil {
+		httpx.Error(c, appErrors.InvalidArgument("invalid request body"))
+		return
+	}
+
+	result, err := h.loginBuyerService.Logout(c.Request.Context(), applicationbuyer.LogoutBuyerInput{RefreshToken: req.RefreshToken})
+	if err != nil {
+		httpx.Error(c, err)
+		return
+	}
+
+	httpx.OK(c, gin.H{"refresh_session_id": result.RefreshSessionID})
 }

@@ -15,10 +15,22 @@ type AuthServiceServer struct {
 	authv1.UnimplementedAuthServiceServer
 	createPasswordCredentialService *applicationcredential.CreatePasswordCredentialService
 	loginService                    *applicationcredential.LoginService
+	refreshTokenService             *applicationcredential.RefreshTokenService
+	logoutService                   *applicationcredential.LogoutService
 }
 
-func NewAuthServiceServer(createPasswordCredentialService *applicationcredential.CreatePasswordCredentialService, loginService *applicationcredential.LoginService) *AuthServiceServer {
-	return &AuthServiceServer{createPasswordCredentialService: createPasswordCredentialService, loginService: loginService}
+func NewAuthServiceServer(
+	createPasswordCredentialService *applicationcredential.CreatePasswordCredentialService,
+	loginService *applicationcredential.LoginService,
+	refreshTokenService *applicationcredential.RefreshTokenService,
+	logoutService *applicationcredential.LogoutService,
+) *AuthServiceServer {
+	return &AuthServiceServer{
+		createPasswordCredentialService: createPasswordCredentialService,
+		loginService:                    loginService,
+		refreshTokenService:             refreshTokenService,
+		logoutService:                   logoutService,
+	}
 }
 
 func (s *AuthServiceServer) CreatePasswordCredential(ctx context.Context, req *authv1.CreatePasswordCredentialRequest) (*authv1.CreatePasswordCredentialResponse, error) {
@@ -73,6 +85,47 @@ func (s *AuthServiceServer) Login(ctx context.Context, req *authv1.LoginRequest)
 	}, nil
 }
 
+func (s *AuthServiceServer) RefreshToken(ctx context.Context, req *authv1.RefreshTokenRequest) (*authv1.RefreshTokenResponse, error) {
+	if req == nil {
+		return nil, status.Error(codes.InvalidArgument, "request is required")
+	}
+
+	result, err := s.refreshTokenService.Execute(ctx, applicationcredential.RefreshTokenInput{
+		RefreshToken: req.GetRefreshToken(),
+		DeviceID:     req.GetDeviceId(),
+		UserAgent:    req.GetUserAgent(),
+		ClientIP:     req.GetClientIp(),
+	})
+	if err != nil {
+		return nil, toGRPCError(err)
+	}
+
+	return &authv1.RefreshTokenResponse{
+		UserId:                result.UserID,
+		Email:                 result.Email,
+		Phone:                 result.Phone,
+		AccessToken:           result.AccessToken,
+		RefreshToken:          result.RefreshToken,
+		TokenType:             result.TokenType,
+		AccessTokenExpiresAt:  result.AccessTokenExpiresAt.Unix(),
+		RefreshTokenExpiresAt: result.RefreshTokenExpiresAt.Unix(),
+		RefreshSessionId:      result.RefreshSessionID,
+	}, nil
+}
+
+func (s *AuthServiceServer) Logout(ctx context.Context, req *authv1.LogoutRequest) (*authv1.LogoutResponse, error) {
+	if req == nil {
+		return nil, status.Error(codes.InvalidArgument, "request is required")
+	}
+
+	result, err := s.logoutService.Execute(ctx, applicationcredential.LogoutInput{RefreshToken: req.GetRefreshToken()})
+	if err != nil {
+		return nil, toGRPCError(err)
+	}
+
+	return &authv1.LogoutResponse{RefreshSessionId: result.RefreshSessionID}, nil
+}
+
 func toGRPCError(err error) error {
 	var appErr *appErrors.Error
 	if !stderrors.As(err, &appErr) {
@@ -83,6 +136,7 @@ func toGRPCError(err error) error {
 	case appErrors.CodeInvalidArgument,
 		appErrors.Code("AUTH_EMAIL_REQUIRED"),
 		appErrors.Code("AUTH_PASSWORD_REQUIRED"),
+		appErrors.Code("AUTH_REFRESH_TOKEN_REQUIRED"),
 		appErrors.Code("AUTH_USER_ID_REQUIRED"),
 		appErrors.Code("AUTH_IDENTIFIER_REQUIRED"),
 		appErrors.Code("AUTH_PASSWORD_TOO_SHORT"):

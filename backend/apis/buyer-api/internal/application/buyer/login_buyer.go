@@ -8,6 +8,8 @@ import (
 
 type LoginAuthService interface {
 	Login(ctx context.Context, input LoginBuyerInput) (*LoginAuthResult, error)
+	RefreshToken(ctx context.Context, input RefreshBuyerTokenInput) (*LoginAuthResult, error)
+	Logout(ctx context.Context, input LogoutBuyerInput) (*LogoutBuyerResult, error)
 }
 
 type BuyerProfileService interface {
@@ -20,6 +22,17 @@ type LoginBuyerInput struct {
 	DeviceID  string
 	UserAgent string
 	ClientIP  string
+}
+
+type RefreshBuyerTokenInput struct {
+	RefreshToken string
+	DeviceID     string
+	UserAgent    string
+	ClientIP     string
+}
+
+type LogoutBuyerInput struct {
+	RefreshToken string
 }
 
 type LoginAuthResult struct {
@@ -42,6 +55,10 @@ type LoginBuyerResult struct {
 	AccessTokenExpiresAt  int64
 	RefreshTokenExpiresAt int64
 	RefreshSessionID      int64
+}
+
+type LogoutBuyerResult struct {
+	RefreshSessionID int64
 }
 
 type LoginBuyerService struct {
@@ -80,4 +97,46 @@ func (s *LoginBuyerService) Execute(ctx context.Context, input LoginBuyerInput) 
 		RefreshTokenExpiresAt: authResult.RefreshTokenExpiresAt,
 		RefreshSessionID:      authResult.RefreshSessionID,
 	}, nil
+}
+
+func (s *LoginBuyerService) Refresh(ctx context.Context, input RefreshBuyerTokenInput) (*LoginBuyerResult, error) {
+	if s.authService == nil {
+		return nil, appErrors.Internal("auth service is not configured")
+	}
+	if s.profileService == nil {
+		return nil, appErrors.Internal("user service is not configured")
+	}
+
+	authResult, err := s.authService.RefreshToken(ctx, input)
+	if err != nil {
+		return nil, err
+	}
+
+	buyer, err := s.profileService.GetUser(ctx, authResult.UserID)
+	if err != nil {
+		return nil, err
+	}
+
+	return &LoginBuyerResult{
+		Buyer:                 buyer,
+		AccessToken:           authResult.AccessToken,
+		RefreshToken:          authResult.RefreshToken,
+		TokenType:             authResult.TokenType,
+		AccessTokenExpiresAt:  authResult.AccessTokenExpiresAt,
+		RefreshTokenExpiresAt: authResult.RefreshTokenExpiresAt,
+		RefreshSessionID:      authResult.RefreshSessionID,
+	}, nil
+}
+
+func (s *LoginBuyerService) Logout(ctx context.Context, input LogoutBuyerInput) (*LogoutBuyerResult, error) {
+	if s.authService == nil {
+		return nil, appErrors.Internal("auth service is not configured")
+	}
+
+	result, err := s.authService.Logout(ctx, input)
+	if err != nil {
+		return nil, err
+	}
+
+	return result, nil
 }

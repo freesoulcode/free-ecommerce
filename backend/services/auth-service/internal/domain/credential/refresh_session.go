@@ -54,3 +54,25 @@ func NewRefreshSession(id, userID int64, tokenHash, deviceID, userAgent, clientI
 		UpdatedAt: now,
 	}, nil
 }
+
+func (s *RefreshSession) IsExpired(now time.Time) bool {
+	return !s.ExpiresAt.After(now.UTC())
+}
+
+func (s *RefreshSession) IsRevoked() bool {
+	return s.RevokedAt != nil
+}
+
+func (s *RefreshSession) CanRefresh(now time.Time) bool {
+	return !s.IsRevoked() && !s.IsExpired(now)
+}
+
+func (s *RefreshSession) Revoke(now time.Time, replacedBySessionID *int64) {
+	if s == nil {
+		return
+	}
+	revokedAt := now.UTC()
+	s.RevokedAt = &revokedAt
+	s.ReplacedBySessionID = replacedBySessionID
+	s.UpdatedAt = revokedAt
+}

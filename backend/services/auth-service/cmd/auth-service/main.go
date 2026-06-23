@@ -65,7 +65,20 @@ func main() {
 		cfg.JWT.RefreshTokenTTL,
 		nil,
 	)
-	authGRPCServer := servicegrpc.NewAuthServiceServer(createPasswordCredentialService, loginService)
+	refreshTokenService := applicationcredential.NewRefreshTokenService(
+		credentialRepo,
+		credentialRepo,
+		idGenerator,
+		accessSigner,
+		refreshTokenGenerator,
+		cfg.JWT.Issuer,
+		cfg.JWT.Audience,
+		cfg.JWT.AccessTokenTTL,
+		cfg.JWT.RefreshTokenTTL,
+		nil,
+	)
+	logoutService := applicationcredential.NewLogoutService(credentialRepo, nil)
+	authGRPCServer := servicegrpc.NewAuthServiceServer(createPasswordCredentialService, loginService, refreshTokenService, logoutService)
 
 	grpcListener, err := net.Listen("tcp", cfg.GRPCAddr)
 	if err != nil {

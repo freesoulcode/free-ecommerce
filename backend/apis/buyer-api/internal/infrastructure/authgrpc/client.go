@@ -72,6 +72,39 @@ func (c *Client) Login(ctx context.Context, input applicationbuyer.LoginBuyerInp
 	}, nil
 }
 
+func (c *Client) RefreshToken(ctx context.Context, input applicationbuyer.RefreshBuyerTokenInput) (*applicationbuyer.LoginAuthResult, error) {
+	resp, err := c.client.RefreshToken(ctx, &authv1.RefreshTokenRequest{
+		RefreshToken: input.RefreshToken,
+		DeviceId:     input.DeviceID,
+		UserAgent:    input.UserAgent,
+		ClientIp:     input.ClientIP,
+	})
+	if err != nil {
+		return nil, toAppError(err)
+	}
+
+	return &applicationbuyer.LoginAuthResult{
+		UserID:                resp.GetUserId(),
+		Email:                 resp.GetEmail(),
+		Phone:                 resp.GetPhone(),
+		AccessToken:           resp.GetAccessToken(),
+		RefreshToken:          resp.GetRefreshToken(),
+		TokenType:             resp.GetTokenType(),
+		AccessTokenExpiresAt:  resp.GetAccessTokenExpiresAt(),
+		RefreshTokenExpiresAt: resp.GetRefreshTokenExpiresAt(),
+		RefreshSessionID:      resp.GetRefreshSessionId(),
+	}, nil
+}
+
+func (c *Client) Logout(ctx context.Context, input applicationbuyer.LogoutBuyerInput) (*applicationbuyer.LogoutBuyerResult, error) {
+	resp, err := c.client.Logout(ctx, &authv1.LogoutRequest{RefreshToken: input.RefreshToken})
+	if err != nil {
+		return nil, toAppError(err)
+	}
+
+	return &applicationbuyer.LogoutBuyerResult{RefreshSessionID: resp.GetRefreshSessionId()}, nil
+}
+
 func toAppError(err error) error {
 	st, ok := status.FromError(err)
 	if !ok {
