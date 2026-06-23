@@ -22,6 +22,10 @@ const (
 	OrderService_SubmitOrder_FullMethodName                     = "/order.v1.OrderService/SubmitOrder"
 	OrderService_ListBuyerOrderGroups_FullMethodName            = "/order.v1.OrderService/ListBuyerOrderGroups"
 	OrderService_GetBuyerOrderGroupDetail_FullMethodName        = "/order.v1.OrderService/GetBuyerOrderGroupDetail"
+	OrderService_ListMerchantShopOrders_FullMethodName          = "/order.v1.OrderService/ListMerchantShopOrders"
+	OrderService_GetMerchantShopOrderDetail_FullMethodName      = "/order.v1.OrderService/GetMerchantShopOrderDetail"
+	OrderService_MarkMerchantShopOrderProcessing_FullMethodName = "/order.v1.OrderService/MarkMerchantShopOrderProcessing"
+	OrderService_MarkMerchantShopOrderCompleted_FullMethodName  = "/order.v1.OrderService/MarkMerchantShopOrderCompleted"
 	OrderService_GetOrderGroupPaymentInfo_FullMethodName        = "/order.v1.OrderService/GetOrderGroupPaymentInfo"
 	OrderService_MarkOrderGroupPaid_FullMethodName              = "/order.v1.OrderService/MarkOrderGroupPaid"
 	OrderService_CloseOrderGroupByPaymentTimeout_FullMethodName = "/order.v1.OrderService/CloseOrderGroupByPaymentTimeout"
@@ -34,6 +38,10 @@ type OrderServiceClient interface {
 	SubmitOrder(ctx context.Context, in *SubmitOrderRequest, opts ...grpc.CallOption) (*SubmitOrderResponse, error)
 	ListBuyerOrderGroups(ctx context.Context, in *ListBuyerOrderGroupsRequest, opts ...grpc.CallOption) (*ListBuyerOrderGroupsResponse, error)
 	GetBuyerOrderGroupDetail(ctx context.Context, in *GetBuyerOrderGroupDetailRequest, opts ...grpc.CallOption) (*GetBuyerOrderGroupDetailResponse, error)
+	ListMerchantShopOrders(ctx context.Context, in *ListMerchantShopOrdersRequest, opts ...grpc.CallOption) (*ListMerchantShopOrdersResponse, error)
+	GetMerchantShopOrderDetail(ctx context.Context, in *GetMerchantShopOrderDetailRequest, opts ...grpc.CallOption) (*GetMerchantShopOrderDetailResponse, error)
+	MarkMerchantShopOrderProcessing(ctx context.Context, in *MarkMerchantShopOrderProcessingRequest, opts ...grpc.CallOption) (*MarkMerchantShopOrderProcessingResponse, error)
+	MarkMerchantShopOrderCompleted(ctx context.Context, in *MarkMerchantShopOrderCompletedRequest, opts ...grpc.CallOption) (*MarkMerchantShopOrderCompletedResponse, error)
 	GetOrderGroupPaymentInfo(ctx context.Context, in *GetOrderGroupPaymentInfoRequest, opts ...grpc.CallOption) (*GetOrderGroupPaymentInfoResponse, error)
 	MarkOrderGroupPaid(ctx context.Context, in *MarkOrderGroupPaidRequest, opts ...grpc.CallOption) (*MarkOrderGroupPaidResponse, error)
 	CloseOrderGroupByPaymentTimeout(ctx context.Context, in *CloseOrderGroupByPaymentTimeoutRequest, opts ...grpc.CallOption) (*CloseOrderGroupByPaymentTimeoutResponse, error)
@@ -77,6 +85,46 @@ func (c *orderServiceClient) GetBuyerOrderGroupDetail(ctx context.Context, in *G
 	return out, nil
 }
 
+func (c *orderServiceClient) ListMerchantShopOrders(ctx context.Context, in *ListMerchantShopOrdersRequest, opts ...grpc.CallOption) (*ListMerchantShopOrdersResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(ListMerchantShopOrdersResponse)
+	err := c.cc.Invoke(ctx, OrderService_ListMerchantShopOrders_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *orderServiceClient) GetMerchantShopOrderDetail(ctx context.Context, in *GetMerchantShopOrderDetailRequest, opts ...grpc.CallOption) (*GetMerchantShopOrderDetailResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(GetMerchantShopOrderDetailResponse)
+	err := c.cc.Invoke(ctx, OrderService_GetMerchantShopOrderDetail_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *orderServiceClient) MarkMerchantShopOrderProcessing(ctx context.Context, in *MarkMerchantShopOrderProcessingRequest, opts ...grpc.CallOption) (*MarkMerchantShopOrderProcessingResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(MarkMerchantShopOrderProcessingResponse)
+	err := c.cc.Invoke(ctx, OrderService_MarkMerchantShopOrderProcessing_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *orderServiceClient) MarkMerchantShopOrderCompleted(ctx context.Context, in *MarkMerchantShopOrderCompletedRequest, opts ...grpc.CallOption) (*MarkMerchantShopOrderCompletedResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(MarkMerchantShopOrderCompletedResponse)
+	err := c.cc.Invoke(ctx, OrderService_MarkMerchantShopOrderCompleted_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 func (c *orderServiceClient) GetOrderGroupPaymentInfo(ctx context.Context, in *GetOrderGroupPaymentInfoRequest, opts ...grpc.CallOption) (*GetOrderGroupPaymentInfoResponse, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
 	out := new(GetOrderGroupPaymentInfoResponse)
@@ -114,6 +162,10 @@ type OrderServiceServer interface {
 	SubmitOrder(context.Context, *SubmitOrderRequest) (*SubmitOrderResponse, error)
 	ListBuyerOrderGroups(context.Context, *ListBuyerOrderGroupsRequest) (*ListBuyerOrderGroupsResponse, error)
 	GetBuyerOrderGroupDetail(context.Context, *GetBuyerOrderGroupDetailRequest) (*GetBuyerOrderGroupDetailResponse, error)
+	ListMerchantShopOrders(context.Context, *ListMerchantShopOrdersRequest) (*ListMerchantShopOrdersResponse, error)
+	GetMerchantShopOrderDetail(context.Context, *GetMerchantShopOrderDetailRequest) (*GetMerchantShopOrderDetailResponse, error)
+	MarkMerchantShopOrderProcessing(context.Context, *MarkMerchantShopOrderProcessingRequest) (*MarkMerchantShopOrderProcessingResponse, error)
+	MarkMerchantShopOrderCompleted(context.Context, *MarkMerchantShopOrderCompletedRequest) (*MarkMerchantShopOrderCompletedResponse, error)
 	GetOrderGroupPaymentInfo(context.Context, *GetOrderGroupPaymentInfoRequest) (*GetOrderGroupPaymentInfoResponse, error)
 	MarkOrderGroupPaid(context.Context, *MarkOrderGroupPaidRequest) (*MarkOrderGroupPaidResponse, error)
 	CloseOrderGroupByPaymentTimeout(context.Context, *CloseOrderGroupByPaymentTimeoutRequest) (*CloseOrderGroupByPaymentTimeoutResponse, error)
@@ -135,6 +187,18 @@ func (UnimplementedOrderServiceServer) ListBuyerOrderGroups(context.Context, *Li
 }
 func (UnimplementedOrderServiceServer) GetBuyerOrderGroupDetail(context.Context, *GetBuyerOrderGroupDetailRequest) (*GetBuyerOrderGroupDetailResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method GetBuyerOrderGroupDetail not implemented")
+}
+func (UnimplementedOrderServiceServer) ListMerchantShopOrders(context.Context, *ListMerchantShopOrdersRequest) (*ListMerchantShopOrdersResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method ListMerchantShopOrders not implemented")
+}
+func (UnimplementedOrderServiceServer) GetMerchantShopOrderDetail(context.Context, *GetMerchantShopOrderDetailRequest) (*GetMerchantShopOrderDetailResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method GetMerchantShopOrderDetail not implemented")
+}
+func (UnimplementedOrderServiceServer) MarkMerchantShopOrderProcessing(context.Context, *MarkMerchantShopOrderProcessingRequest) (*MarkMerchantShopOrderProcessingResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method MarkMerchantShopOrderProcessing not implemented")
+}
+func (UnimplementedOrderServiceServer) MarkMerchantShopOrderCompleted(context.Context, *MarkMerchantShopOrderCompletedRequest) (*MarkMerchantShopOrderCompletedResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method MarkMerchantShopOrderCompleted not implemented")
 }
 func (UnimplementedOrderServiceServer) GetOrderGroupPaymentInfo(context.Context, *GetOrderGroupPaymentInfoRequest) (*GetOrderGroupPaymentInfoResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method GetOrderGroupPaymentInfo not implemented")
@@ -220,6 +284,78 @@ func _OrderService_GetBuyerOrderGroupDetail_Handler(srv interface{}, ctx context
 	return interceptor(ctx, in, info, handler)
 }
 
+func _OrderService_ListMerchantShopOrders_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ListMerchantShopOrdersRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(OrderServiceServer).ListMerchantShopOrders(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: OrderService_ListMerchantShopOrders_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(OrderServiceServer).ListMerchantShopOrders(ctx, req.(*ListMerchantShopOrdersRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _OrderService_GetMerchantShopOrderDetail_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetMerchantShopOrderDetailRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(OrderServiceServer).GetMerchantShopOrderDetail(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: OrderService_GetMerchantShopOrderDetail_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(OrderServiceServer).GetMerchantShopOrderDetail(ctx, req.(*GetMerchantShopOrderDetailRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _OrderService_MarkMerchantShopOrderProcessing_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(MarkMerchantShopOrderProcessingRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(OrderServiceServer).MarkMerchantShopOrderProcessing(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: OrderService_MarkMerchantShopOrderProcessing_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(OrderServiceServer).MarkMerchantShopOrderProcessing(ctx, req.(*MarkMerchantShopOrderProcessingRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _OrderService_MarkMerchantShopOrderCompleted_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(MarkMerchantShopOrderCompletedRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(OrderServiceServer).MarkMerchantShopOrderCompleted(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: OrderService_MarkMerchantShopOrderCompleted_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(OrderServiceServer).MarkMerchantShopOrderCompleted(ctx, req.(*MarkMerchantShopOrderCompletedRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 func _OrderService_GetOrderGroupPaymentInfo_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(GetOrderGroupPaymentInfoRequest)
 	if err := dec(in); err != nil {
@@ -292,6 +428,22 @@ var OrderService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "GetBuyerOrderGroupDetail",
 			Handler:    _OrderService_GetBuyerOrderGroupDetail_Handler,
+		},
+		{
+			MethodName: "ListMerchantShopOrders",
+			Handler:    _OrderService_ListMerchantShopOrders_Handler,
+		},
+		{
+			MethodName: "GetMerchantShopOrderDetail",
+			Handler:    _OrderService_GetMerchantShopOrderDetail_Handler,
+		},
+		{
+			MethodName: "MarkMerchantShopOrderProcessing",
+			Handler:    _OrderService_MarkMerchantShopOrderProcessing_Handler,
+		},
+		{
+			MethodName: "MarkMerchantShopOrderCompleted",
+			Handler:    _OrderService_MarkMerchantShopOrderCompleted_Handler,
 		},
 		{
 			MethodName: "GetOrderGroupPaymentInfo",

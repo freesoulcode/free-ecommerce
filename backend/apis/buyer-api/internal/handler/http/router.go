@@ -9,12 +9,13 @@ import (
 )
 
 type RouterParams struct {
-	ServiceName    string
-	BuyerHandler   *BuyerHandler
-	ProductHandler *ProductHandler
-	CartHandler    *CartHandler
-	OrderHandler   *OrderHandler
-	PaymentHandler *PaymentHandler
+	ServiceName          string
+	BuyerHandler         *BuyerHandler
+	ProductHandler       *ProductHandler
+	CartHandler          *CartHandler
+	OrderHandler         *OrderHandler
+	MerchantOrderHandler *MerchantOrderHandler
+	PaymentHandler       *PaymentHandler
 }
 
 func NewRouter(params RouterParams) *gin.Engine {
@@ -49,6 +50,9 @@ func NewRouter(params RouterParams) *gin.Engine {
 	}
 	if params.OrderHandler != nil {
 		params.OrderHandler.RegisterRoutes(router)
+	}
+	if params.MerchantOrderHandler != nil {
+		params.MerchantOrderHandler.RegisterRoutes(router)
 	}
 	if params.PaymentHandler != nil {
 		params.PaymentHandler.RegisterRoutes(router)

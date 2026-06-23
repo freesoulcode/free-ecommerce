@@ -14,6 +14,10 @@ type OrderHandler struct {
 	service *applicationbuyer.OrderBuyerService
 }
 
+type MerchantOrderHandler struct {
+	service *applicationbuyer.MerchantOrderBuyerService
+}
+
 type submitOrderRequest struct {
 	AddressID   int64   `json:"address_id" binding:"required"`
 	CartItemIDs []int64 `json:"cart_item_ids"`
@@ -24,10 +28,21 @@ func NewOrderHandler(service *applicationbuyer.OrderBuyerService) *OrderHandler 
 	return &OrderHandler{service: service}
 }
 
+func NewMerchantOrderHandler(service *applicationbuyer.MerchantOrderBuyerService) *MerchantOrderHandler {
+	return &MerchantOrderHandler{service: service}
+}
+
 func (h *OrderHandler) RegisterRoutes(router *gin.Engine) {
 	router.POST("/api/v1/buyers/:buyerID/orders", h.submit)
 	router.GET("/api/v1/buyers/:buyerID/orders", h.list)
 	router.GET("/api/v1/buyers/:buyerID/orders/:orderGroupID", h.detail)
+}
+
+func (h *MerchantOrderHandler) RegisterRoutes(router *gin.Engine) {
+	router.GET("/api/v1/shops/:shopID/orders", h.list)
+	router.GET("/api/v1/shops/:shopID/orders/:shopOrderID", h.detail)
+	router.POST("/api/v1/shops/:shopID/orders/:shopOrderID/processing", h.markProcessing)
+	router.POST("/api/v1/shops/:shopID/orders/:shopOrderID/complete", h.markCompleted)
 }
 
 func (h *OrderHandler) submit(c *gin.Context) {
@@ -84,6 +99,76 @@ func (h *OrderHandler) detail(c *gin.Context) {
 	httpx.OK(c, gin.H{"order_group": orderGroupDetailResponse(group)})
 }
 
+func (h *MerchantOrderHandler) list(c *gin.Context) {
+	shopID, ok := parseInt64PathParam(c, "shopID")
+	if !ok {
+		return
+	}
+	page, _ := strconv.ParseInt(c.DefaultQuery("page", "1"), 10, 32)
+	pageSize, _ := strconv.ParseInt(c.DefaultQuery("page_size", "20"), 10, 32)
+	result, err := h.service.List(c.Request.Context(), applicationbuyer.ListMerchantShopOrdersInput{ShopID: shopID, Page: int32(page), PageSize: int32(pageSize), Status: c.Query("status")})
+	if err != nil {
+		httpx.Error(c, err)
+		return
+	}
+	items := make([]gin.H, 0, len(result.ShopOrders))
+	for _, shopOrder := range result.ShopOrders {
+		items = append(items, merchantShopOrderSummaryResponse(shopOrder))
+	}
+	httpx.OK(c, gin.H{"shop_orders": items, "total": result.Total, "page": result.Page, "page_size": result.PageSize})
+}
+
+func (h *MerchantOrderHandler) detail(c *gin.Context) {
+	shopID, ok := parseInt64PathParam(c, "shopID")
+	if !ok {
+		return
+	}
+	shopOrderID, ok := parseInt64PathParam(c, "shopOrderID")
+	if !ok {
+		return
+	}
+	shopOrder, err := h.service.Detail(c.Request.Context(), shopID, shopOrderID)
+	if err != nil {
+		httpx.Error(c, err)
+		return
+	}
+	httpx.OK(c, gin.H{"shop_order": merchantShopOrderDetailResponse(shopOrder)})
+}
+
+func (h *MerchantOrderHandler) markProcessing(c *gin.Context) {
+	shopID, ok := parseInt64PathParam(c, "shopID")
+	if !ok {
+		return
+	}
+	shopOrderID, ok := parseInt64PathParam(c, "shopOrderID")
+	if !ok {
+		return
+	}
+	shopOrder, err := h.service.MarkProcessing(c.Request.Context(), shopID, shopOrderID)
+	if err != nil {
+		httpx.Error(c, err)
+		return
+	}
+	httpx.OK(c, gin.H{"shop_order": merchantShopOrderDetailResponse(shopOrder)})
+}
+
+func (h *MerchantOrderHandler) markCompleted(c *gin.Context) {
+	shopID, ok := parseInt64PathParam(c, "shopID")
+	if !ok {
+		return
+	}
+	shopOrderID, ok := parseInt64PathParam(c, "shopOrderID")
+	if !ok {
+		return
+	}
+	shopOrder, err := h.service.MarkCompleted(c.Request.Context(), shopID, shopOrderID)
+	if err != nil {
+		httpx.Error(c, err)
+		return
+	}
+	httpx.OK(c, gin.H{"shop_order": merchantShopOrderDetailResponse(shopOrder)})
+}
+
 func orderAddressSnapshotResponse(address *applicationbuyer.OrderAddressSnapshot) gin.H {
 	if address == nil {
 		return nil
@@ -121,4 +206,18 @@ func orderGroupDetailResponse(group *applicationbuyer.OrderGroupDetail) gin.H {
 		shopOrders = append(shopOrders, shopOrderResponse(shopOrder))
 	}
 	return gin.H{"id": group.ID, "user_id": group.UserID, "status": group.Status, "source": group.Source, "total_item_amount": group.TotalItemAmount, "total_shipping_amount": group.TotalShippingAmount, "total_pay_amount": group.TotalPayAmount, "currency": group.Currency, "shop_order_count": group.ShopOrderCount, "item_count": group.ItemCount, "payment_deadline_at": group.PaymentDeadlineAt, "paid_at": group.PaidAt, "address": orderAddressSnapshotResponse(group.Address), "shop_orders": shopOrders, "created_at": group.CreatedAt, "updated_at": group.UpdatedAt}
+}
+
+func merchantShopOrderSummaryResponse(shopOrder *applicationbuyer.MerchantShopOrderSummary) gin.H {
+	if shopOrder == nil {
+		return nil
+	}
+	return gin.H{"id": shopOrder.ID, "order_group_id": shopOrder.OrderGroupID, "user_id": shopOrder.UserID, "shop_id": shopOrder.ShopID, "shop_name": shopOrder.ShopName, "status": shopOrder.Status, "item_amount": shopOrder.ItemAmount, "shipping_amount": shopOrder.ShippingAmount, "pay_amount": shopOrder.PayAmount, "currency": shopOrder.Currency, "item_count": shopOrder.ItemCount, "paid_at": shopOrder.PaidAt, "created_at": shopOrder.CreatedAt, "updated_at": shopOrder.UpdatedAt, "order_group_status": shopOrder.OrderGroupStatus, "payment_deadline_at": shopOrder.PaymentDeadlineAt}
+}
+
+func merchantShopOrderDetailResponse(shopOrder *applicationbuyer.MerchantShopOrderDetail) gin.H {
+	if shopOrder == nil {
+		return nil
+	}
+	return gin.H{"order_group_id": shopOrder.OrderGroupID, "user_id": shopOrder.UserID, "order_group_status": shopOrder.OrderGroupStatus, "source": shopOrder.Source, "payment_deadline_at": shopOrder.PaymentDeadlineAt, "paid_at": shopOrder.PaidAt, "address": orderAddressSnapshotResponse(shopOrder.Address), "shop_order": shopOrderResponse(shopOrder.ShopOrder)}
 }

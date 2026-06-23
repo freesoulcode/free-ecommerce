@@ -8,6 +8,10 @@ service OrderService {
   rpc SubmitOrder(SubmitOrderRequest) returns (SubmitOrderResponse);
   rpc ListBuyerOrderGroups(ListBuyerOrderGroupsRequest) returns (ListBuyerOrderGroupsResponse);
   rpc GetBuyerOrderGroupDetail(GetBuyerOrderGroupDetailRequest) returns (GetBuyerOrderGroupDetailResponse);
+  rpc ListMerchantShopOrders(ListMerchantShopOrdersRequest) returns (ListMerchantShopOrdersResponse);
+  rpc GetMerchantShopOrderDetail(GetMerchantShopOrderDetailRequest) returns (GetMerchantShopOrderDetailResponse);
+  rpc MarkMerchantShopOrderProcessing(MarkMerchantShopOrderProcessingRequest) returns (MarkMerchantShopOrderProcessingResponse);
+  rpc MarkMerchantShopOrderCompleted(MarkMerchantShopOrderCompletedRequest) returns (MarkMerchantShopOrderCompletedResponse);
   rpc GetOrderGroupPaymentInfo(GetOrderGroupPaymentInfoRequest) returns (GetOrderGroupPaymentInfoResponse);
   rpc MarkOrderGroupPaid(MarkOrderGroupPaidRequest) returns (MarkOrderGroupPaidResponse);
   rpc CloseOrderGroupByPaymentTimeout(CloseOrderGroupByPaymentTimeoutRequest) returns (CloseOrderGroupByPaymentTimeoutResponse);
@@ -136,6 +140,36 @@ message OrderGroupPaymentInfo {
   int64 paid_at = 7;
 }
 
+message MerchantShopOrderSummary {
+  int64 id = 1;
+  int64 order_group_id = 2;
+  int64 user_id = 3;
+  int64 shop_id = 4;
+  string shop_name = 5;
+  string status = 6;
+  int64 item_amount = 7;
+  int64 shipping_amount = 8;
+  int64 pay_amount = 9;
+  string currency = 10;
+  int32 item_count = 11;
+  int64 created_at = 12;
+  int64 updated_at = 13;
+  int64 paid_at = 14;
+  string order_group_status = 15;
+  int64 payment_deadline_at = 16;
+}
+
+message MerchantShopOrderDetail {
+  int64 order_group_id = 1;
+  int64 user_id = 2;
+  string order_group_status = 3;
+  string source = 4;
+  int64 payment_deadline_at = 5;
+  int64 paid_at = 6;
+  AddressSnapshot address = 7;
+  ShopOrder shop_order = 8;
+}
+
 message SubmitOrderRequest {
   int64 user_id = 1;
   int64 address_id = 2;
@@ -168,6 +202,47 @@ message GetBuyerOrderGroupDetailRequest {
 
 message GetBuyerOrderGroupDetailResponse {
   OrderGroupDetail order_group = 1;
+}
+
+message ListMerchantShopOrdersRequest {
+  int64 shop_id = 1;
+  int32 page = 2;
+  int32 page_size = 3;
+  string status = 4;
+}
+
+message ListMerchantShopOrdersResponse {
+  repeated MerchantShopOrderSummary shop_orders = 1;
+  int64 total = 2;
+  int32 page = 3;
+  int32 page_size = 4;
+}
+
+message GetMerchantShopOrderDetailRequest {
+  int64 shop_id = 1;
+  int64 shop_order_id = 2;
+}
+
+message GetMerchantShopOrderDetailResponse {
+  MerchantShopOrderDetail shop_order = 1;
+}
+
+message MarkMerchantShopOrderProcessingRequest {
+  int64 shop_id = 1;
+  int64 shop_order_id = 2;
+}
+
+message MarkMerchantShopOrderProcessingResponse {
+  MerchantShopOrderDetail shop_order = 1;
+}
+
+message MarkMerchantShopOrderCompletedRequest {
+  int64 shop_id = 1;
+  int64 shop_order_id = 2;
+}
+
+message MarkMerchantShopOrderCompletedResponse {
+  MerchantShopOrderDetail shop_order = 1;
 }
 
 message GetOrderGroupPaymentInfoRequest {

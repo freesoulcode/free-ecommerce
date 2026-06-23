@@ -119,6 +119,36 @@ type OrderGroupDetail struct {
 	UpdatedAt           int64
 }
 
+type MerchantShopOrderSummary struct {
+	ID                int64
+	OrderGroupID      int64
+	UserID            int64
+	ShopID            int64
+	ShopName          string
+	Status            string
+	ItemAmount        int64
+	ShippingAmount    int64
+	PayAmount         int64
+	Currency          string
+	ItemCount         int32
+	PaidAt            int64
+	CreatedAt         int64
+	UpdatedAt         int64
+	OrderGroupStatus  string
+	PaymentDeadlineAt int64
+}
+
+type MerchantShopOrderDetail struct {
+	OrderGroupID      int64
+	UserID            int64
+	OrderGroupStatus  string
+	Source            string
+	PaymentDeadlineAt int64
+	PaidAt            int64
+	Address           *OrderAddressSnapshot
+	ShopOrder         *ShopOrder
+}
+
 type SubmitOrderInput struct {
 	UserID      int64
 	AddressID   int64
@@ -140,16 +170,40 @@ type ListOrdersResult struct {
 	PageSize    int32
 }
 
+type ListMerchantShopOrdersInput struct {
+	ShopID   int64
+	Page     int32
+	PageSize int32
+	Status   string
+}
+
+type ListMerchantShopOrdersResult struct {
+	ShopOrders []*MerchantShopOrderSummary
+	Total      int64
+	Page       int32
+	PageSize   int32
+}
+
 type OrderServiceClient interface {
 	SubmitOrder(ctx context.Context, input SubmitOrderInput) (*OrderGroupDetail, error)
 	ListBuyerOrderGroups(ctx context.Context, input ListOrdersInput) (*ListOrdersResult, error)
 	GetBuyerOrderGroupDetail(ctx context.Context, userID, orderGroupID int64) (*OrderGroupDetail, error)
+	ListMerchantShopOrders(ctx context.Context, input ListMerchantShopOrdersInput) (*ListMerchantShopOrdersResult, error)
+	GetMerchantShopOrderDetail(ctx context.Context, shopID, shopOrderID int64) (*MerchantShopOrderDetail, error)
+	MarkMerchantShopOrderProcessing(ctx context.Context, shopID, shopOrderID int64) (*MerchantShopOrderDetail, error)
+	MarkMerchantShopOrderCompleted(ctx context.Context, shopID, shopOrderID int64) (*MerchantShopOrderDetail, error)
 }
 
 type OrderBuyerService struct{ client OrderServiceClient }
 
+type MerchantOrderBuyerService struct{ client OrderServiceClient }
+
 func NewOrderBuyerService(client OrderServiceClient) *OrderBuyerService {
 	return &OrderBuyerService{client: client}
+}
+
+func NewMerchantOrderBuyerService(client OrderServiceClient) *MerchantOrderBuyerService {
+	return &MerchantOrderBuyerService{client: client}
 }
 
 func (s *OrderBuyerService) Submit(ctx context.Context, input SubmitOrderInput) (*OrderGroupDetail, error) {
@@ -171,4 +225,32 @@ func (s *OrderBuyerService) Detail(ctx context.Context, userID, orderGroupID int
 		return nil, appErrors.Internal("order service is not configured")
 	}
 	return s.client.GetBuyerOrderGroupDetail(ctx, userID, orderGroupID)
+}
+
+func (s *MerchantOrderBuyerService) List(ctx context.Context, input ListMerchantShopOrdersInput) (*ListMerchantShopOrdersResult, error) {
+	if s.client == nil {
+		return nil, appErrors.Internal("order service is not configured")
+	}
+	return s.client.ListMerchantShopOrders(ctx, input)
+}
+
+func (s *MerchantOrderBuyerService) Detail(ctx context.Context, shopID, shopOrderID int64) (*MerchantShopOrderDetail, error) {
+	if s.client == nil {
+		return nil, appErrors.Internal("order service is not configured")
+	}
+	return s.client.GetMerchantShopOrderDetail(ctx, shopID, shopOrderID)
+}
+
+func (s *MerchantOrderBuyerService) MarkProcessing(ctx context.Context, shopID, shopOrderID int64) (*MerchantShopOrderDetail, error) {
+	if s.client == nil {
+		return nil, appErrors.Internal("order service is not configured")
+	}
+	return s.client.MarkMerchantShopOrderProcessing(ctx, shopID, shopOrderID)
+}
+
+func (s *MerchantOrderBuyerService) MarkCompleted(ctx context.Context, shopID, shopOrderID int64) (*MerchantShopOrderDetail, error) {
+	if s.client == nil {
+		return nil, appErrors.Internal("order service is not configured")
+	}
+	return s.client.MarkMerchantShopOrderCompleted(ctx, shopID, shopOrderID)
 }

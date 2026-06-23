@@ -61,10 +61,14 @@ func main() {
 	submitService := applicationorder.NewSubmitOrderService(repo, idGenerator, userClient, cartClient, paymentTTL, nil)
 	listService := applicationorder.NewListBuyerOrderGroupsService(repo)
 	getService := applicationorder.NewGetBuyerOrderGroupDetailService(repo)
+	listMerchantService := applicationorder.NewListMerchantShopOrdersService(repo)
+	getMerchantService := applicationorder.NewGetMerchantShopOrderDetailService(repo)
+	markProcessingSvc := applicationorder.NewMarkMerchantShopOrderProcessingService(repo, nil)
+	markCompletedSvc := applicationorder.NewMarkMerchantShopOrderCompletedService(repo, nil)
 	getPaymentInfoService := applicationorder.NewGetOrderGroupPaymentInfoService(repo, nil)
 	markPaidService := applicationorder.NewMarkOrderGroupPaidService(repo, nil)
 	closeTimeoutService := applicationorder.NewCloseOrderGroupByPaymentTimeoutService(repo, nil)
-	orderGRPCServer := servicegrpc.NewOrderServiceServer(submitService, listService, getService, getPaymentInfoService, markPaidService, closeTimeoutService)
+	orderGRPCServer := servicegrpc.NewOrderServiceServer(submitService, listService, getService, listMerchantService, getMerchantService, markProcessingSvc, markCompletedSvc, getPaymentInfoService, markPaidService, closeTimeoutService)
 
 	grpcListener, err := net.Listen("tcp", cfg.GRPCAddr)
 	if err != nil {

@@ -97,6 +97,25 @@ func (OrderItemModel) TableName() string { return "order_items" }
 
 type OrderRepository struct{ db *gorm.DB }
 
+type merchantShopOrderRow struct {
+	ID                int64      `gorm:"column:id"`
+	OrderGroupID      int64      `gorm:"column:order_group_id"`
+	UserID            int64      `gorm:"column:user_id"`
+	ShopID            int64      `gorm:"column:shop_id"`
+	ShopName          string     `gorm:"column:shop_name"`
+	Status            string     `gorm:"column:status"`
+	ItemAmount        int64      `gorm:"column:item_amount"`
+	ShippingAmount    int64      `gorm:"column:shipping_amount"`
+	PayAmount         int64      `gorm:"column:pay_amount"`
+	Currency          string     `gorm:"column:currency"`
+	ItemCount         int32      `gorm:"column:item_count"`
+	PaidAt            *time.Time `gorm:"column:paid_at"`
+	CreatedAt         time.Time  `gorm:"column:created_at"`
+	UpdatedAt         time.Time  `gorm:"column:updated_at"`
+	OrderGroupStatus  string     `gorm:"column:order_group_status"`
+	PaymentDeadlineAt time.Time  `gorm:"column:payment_deadline_at"`
+}
+
 func NewOrderRepository(db *gorm.DB) *OrderRepository { return &OrderRepository{db: db} }
 
 func (r *OrderRepository) SubmitOrder(ctx context.Context, group *domainorder.Group) error {
@@ -254,6 +273,164 @@ func (r *OrderRepository) GetBuyerOrderGroupDetail(ctx context.Context, userID, 
 	return group, nil
 }
 
+func (r *OrderRepository) ListMerchantShopOrders(ctx context.Context, query domainorder.ListMerchantShopOrdersQuery) ([]*domainorder.MerchantShopOrderSummary, int64, error) {
+	db := r.db.WithContext(ctx).
+		Model(&ShopOrderModel{}).
+		Joins("JOIN order_groups ON order_groups.id = shop_orders.order_group_id").
+		Where("shop_orders.shop_id = ?", query.ShopID)
+	if status := strings.TrimSpace(query.Status); status != "" {
+		db = db.Where("shop_orders.status = ?", status)
+	}
+	var total int64
+	if err := db.Count(&total).Error; err != nil {
+		return nil, 0, fmt.Errorf("count merchant shop orders: %w", err)
+	}
+
+	var rows []merchantShopOrderRow
+	offset := (query.Page - 1) * query.PageSize
+	if err := db.Select("shop_orders.*, order_groups.status AS order_group_status, order_groups.payment_deadline_at AS payment_deadline_at").Order("shop_orders.created_at DESC, shop_orders.id DESC").Limit(int(query.PageSize)).Offset(int(offset)).Scan(&rows).Error; err != nil {
+		return nil, 0, fmt.Errorf("list merchant shop orders: %w", err)
+	}
+	if len(rows) == 0 {
+		return []*domainorder.MerchantShopOrderSummary{}, total, nil
+	}
+
+	items := make([]*domainorder.MerchantShopOrderSummary, 0, len(rows))
+	for _, row := range rows {
+		items = append(items, toMerchantShopOrderSummary(row))
+	}
+	return items, total, nil
+}
+
+func (r *OrderRepository) GetMerchantShopOrderDetail(ctx context.Context, shopID, shopOrderID int64) (*domainorder.MerchantShopOrderDetail, error) {
+	shopOrderModel, err := r.getShopOrderModel(ctx, shopID, shopOrderID)
+	if err != nil {
+		return nil, err
+	}
+	groupModel, err := r.getOrderGroupModelByID(ctx, shopOrderModel.OrderGroupID)
+	if err != nil {
+		return nil, err
+	}
+	var addressModel OrderGroupAddressModel
+	if err := r.db.WithContext(ctx).Where("order_group_id = ?", shopOrderModel.OrderGroupID).First(&addressModel).Error; err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return nil, appErrors.NotFound("order address not found")
+		}
+		return nil, fmt.Errorf("find merchant order address detail: %w", err)
+	}
+	var itemModels []OrderItemModel
+	if err := r.db.WithContext(ctx).Where("shop_order_id = ?", shopOrderID).Order("created_at ASC, id ASC").Find(&itemModels).Error; err != nil {
+		return nil, fmt.Errorf("list merchant order items detail: %w", err)
+	}
+	items := make([]*domainorder.Item, 0, len(itemModels))
+	for _, model := range itemModels {
+		items = append(items, toOrderItem(model))
+	}
+	shopOrder := toShopOrder(shopOrderModel)
+	shopOrder.Items = items
+	return &domainorder.MerchantShopOrderDetail{
+		OrderGroupID:      groupModel.ID,
+		UserID:            groupModel.UserID,
+		OrderGroupStatus:  groupModel.Status,
+		Source:            groupModel.Source,
+		PaymentDeadlineAt: groupModel.PaymentDeadlineAt,
+		PaidAt:            groupModel.PaidAt,
+		Address:           toAddressSnapshot(addressModel),
+		ShopOrder:         shopOrder,
+	}, nil
+}
+
+func (r *OrderRepository) MarkMerchantShopOrderProcessing(ctx context.Context, shopID, shopOrderID int64, updatedAt time.Time) (*domainorder.MerchantShopOrderDetail, error) {
+	err := r.db.WithContext(ctx).Transaction(func(tx *gorm.DB) error {
+		shopOrderModel, err := r.getShopOrderModelForUpdate(tx, shopID, shopOrderID)
+		if err != nil {
+			return err
+		}
+		groupModel, err := r.getOrderGroupModelByIDForUpdate(tx, shopOrderModel.OrderGroupID)
+		if err != nil {
+			return err
+		}
+
+		switch shopOrderModel.Status {
+		case domainorder.StatusMerchantProcessing:
+			return nil
+		case domainorder.StatusPaid:
+		default:
+			return appErrors.InvalidArgument("shop order status does not allow merchant processing")
+		}
+
+		if groupModel.Status != domainorder.StatusPaid && groupModel.Status != domainorder.StatusMerchantProcessing {
+			return appErrors.InvalidArgument("order group status does not allow merchant processing")
+		}
+
+		if shopOrderModel.Status == domainorder.StatusPaid {
+			if err := tx.Model(&ShopOrderModel{}).Where("id = ? AND shop_id = ?", shopOrderID, shopID).Updates(map[string]any{"status": domainorder.StatusMerchantProcessing, "updated_at": updatedAt}).Error; err != nil {
+				return fmt.Errorf("mark merchant shop order processing: %w", err)
+			}
+		}
+		if groupModel.Status == domainorder.StatusPaid {
+			if err := tx.Model(&OrderGroupModel{}).Where("id = ?", groupModel.ID).Updates(map[string]any{"status": domainorder.StatusMerchantProcessing, "updated_at": updatedAt}).Error; err != nil {
+				return fmt.Errorf("mark order group merchant processing: %w", err)
+			}
+		}
+		return nil
+	})
+	if err != nil {
+		return nil, err
+	}
+	return r.GetMerchantShopOrderDetail(ctx, shopID, shopOrderID)
+}
+
+func (r *OrderRepository) MarkMerchantShopOrderCompleted(ctx context.Context, shopID, shopOrderID int64, updatedAt time.Time) (*domainorder.MerchantShopOrderDetail, error) {
+	err := r.db.WithContext(ctx).Transaction(func(tx *gorm.DB) error {
+		shopOrderModel, err := r.getShopOrderModelForUpdate(tx, shopID, shopOrderID)
+		if err != nil {
+			return err
+		}
+		groupModel, err := r.getOrderGroupModelByIDForUpdate(tx, shopOrderModel.OrderGroupID)
+		if err != nil {
+			return err
+		}
+
+		switch shopOrderModel.Status {
+		case domainorder.StatusCompleted:
+			return nil
+		case domainorder.StatusMerchantProcessing:
+		default:
+			return appErrors.InvalidArgument("shop order status does not allow completion")
+		}
+
+		if groupModel.Status != domainorder.StatusMerchantProcessing && groupModel.Status != domainorder.StatusCompleted {
+			return appErrors.InvalidArgument("order group status does not allow completion")
+		}
+
+		if shopOrderModel.Status == domainorder.StatusMerchantProcessing {
+			if err := tx.Model(&ShopOrderModel{}).Where("id = ? AND shop_id = ?", shopOrderID, shopID).Updates(map[string]any{"status": domainorder.StatusCompleted, "updated_at": updatedAt}).Error; err != nil {
+				return fmt.Errorf("mark merchant shop order completed: %w", err)
+			}
+		}
+
+		var remaining int64
+		if err := tx.Model(&ShopOrderModel{}).Where("order_group_id = ? AND status <> ?", shopOrderModel.OrderGroupID, domainorder.StatusCompleted).Count(&remaining).Error; err != nil {
+			return fmt.Errorf("count remaining shop orders: %w", err)
+		}
+		groupStatus := domainorder.StatusMerchantProcessing
+		if remaining == 0 {
+			groupStatus = domainorder.StatusCompleted
+		}
+		if groupModel.Status != groupStatus {
+			if err := tx.Model(&OrderGroupModel{}).Where("id = ?", groupModel.ID).Updates(map[string]any{"status": groupStatus, "updated_at": updatedAt}).Error; err != nil {
+				return fmt.Errorf("update order group completion status: %w", err)
+			}
+		}
+		return nil
+	})
+	if err != nil {
+		return nil, err
+	}
+	return r.GetMerchantShopOrderDetail(ctx, shopID, shopOrderID)
+}
+
 func (r *OrderRepository) GetOrderGroupPaymentInfo(ctx context.Context, userID, orderGroupID int64) (*domainorder.PaymentInfo, error) {
 	groupModel, err := r.getOrderGroupModel(ctx, userID, orderGroupID)
 	if err != nil {
@@ -371,6 +548,50 @@ func (r *OrderRepository) getOrderGroupModelForUpdate(tx *gorm.DB, userID, order
 	return groupModel, nil
 }
 
+func (r *OrderRepository) getOrderGroupModelByID(ctx context.Context, orderGroupID int64) (OrderGroupModel, error) {
+	var groupModel OrderGroupModel
+	if err := r.db.WithContext(ctx).Where("id = ?", orderGroupID).First(&groupModel).Error; err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return OrderGroupModel{}, appErrors.NotFound("order group not found")
+		}
+		return OrderGroupModel{}, fmt.Errorf("find order group by id: %w", err)
+	}
+	return groupModel, nil
+}
+
+func (r *OrderRepository) getOrderGroupModelByIDForUpdate(tx *gorm.DB, orderGroupID int64) (OrderGroupModel, error) {
+	var groupModel OrderGroupModel
+	if err := tx.Where("id = ?", orderGroupID).Take(&groupModel).Error; err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return OrderGroupModel{}, appErrors.NotFound("order group not found")
+		}
+		return OrderGroupModel{}, fmt.Errorf("find order group by id for update: %w", err)
+	}
+	return groupModel, nil
+}
+
+func (r *OrderRepository) getShopOrderModel(ctx context.Context, shopID, shopOrderID int64) (ShopOrderModel, error) {
+	var shopOrderModel ShopOrderModel
+	if err := r.db.WithContext(ctx).Where("id = ? AND shop_id = ?", shopOrderID, shopID).First(&shopOrderModel).Error; err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return ShopOrderModel{}, appErrors.NotFound("shop order not found")
+		}
+		return ShopOrderModel{}, fmt.Errorf("find shop order: %w", err)
+	}
+	return shopOrderModel, nil
+}
+
+func (r *OrderRepository) getShopOrderModelForUpdate(tx *gorm.DB, shopID, shopOrderID int64) (ShopOrderModel, error) {
+	var shopOrderModel ShopOrderModel
+	if err := tx.Where("id = ? AND shop_id = ?", shopOrderID, shopID).Take(&shopOrderModel).Error; err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return ShopOrderModel{}, appErrors.NotFound("shop order not found")
+		}
+		return ShopOrderModel{}, fmt.Errorf("find shop order for update: %w", err)
+	}
+	return shopOrderModel, nil
+}
+
 func nullableString(value string) *string {
 	trimmed := strings.TrimSpace(value)
 	if trimmed == "" {
@@ -408,6 +629,14 @@ func toAddressSnapshot(model OrderGroupAddressModel) *domainorder.AddressSnapsho
 
 func toShopOrderSummary(model ShopOrderModel) *domainorder.ShopOrderSummary {
 	return &domainorder.ShopOrderSummary{ID: model.ID, OrderGroupID: model.OrderGroupID, UserID: model.UserID, ShopID: model.ShopID, ShopName: model.ShopName, Status: model.Status, ItemAmount: model.ItemAmount, ShippingAmount: model.ShippingAmount, PayAmount: model.PayAmount, Currency: model.Currency, ItemCount: model.ItemCount, PaidAt: model.PaidAt, CreatedAt: model.CreatedAt, UpdatedAt: model.UpdatedAt}
+}
+
+func toMerchantShopOrderSummary(row merchantShopOrderRow) *domainorder.MerchantShopOrderSummary {
+	return &domainorder.MerchantShopOrderSummary{ID: row.ID, OrderGroupID: row.OrderGroupID, UserID: row.UserID, ShopID: row.ShopID, ShopName: row.ShopName, Status: row.Status, ItemAmount: row.ItemAmount, ShippingAmount: row.ShippingAmount, PayAmount: row.PayAmount, Currency: row.Currency, ItemCount: row.ItemCount, OrderGroupStatus: row.OrderGroupStatus, PaymentDeadlineAt: row.PaymentDeadlineAt, PaidAt: row.PaidAt, CreatedAt: row.CreatedAt, UpdatedAt: row.UpdatedAt}
+}
+
+func toShopOrder(model ShopOrderModel) *domainorder.ShopOrder {
+	return &domainorder.ShopOrder{ID: model.ID, OrderGroupID: model.OrderGroupID, UserID: model.UserID, ShopID: model.ShopID, ShopName: model.ShopName, Status: model.Status, ItemAmount: model.ItemAmount, ShippingAmount: model.ShippingAmount, PayAmount: model.PayAmount, Currency: model.Currency, ItemCount: model.ItemCount, PaidAt: model.PaidAt, CreatedAt: model.CreatedAt, UpdatedAt: model.UpdatedAt}
 }
 
 func toOrderItem(model OrderItemModel) *domainorder.Item {

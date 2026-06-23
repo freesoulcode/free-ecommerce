@@ -85,16 +85,19 @@ func main() {
 	cartHandler := servicehttp.NewCartHandler(cartBuyerService)
 	orderBuyerService := applicationbuyer.NewOrderBuyerService(orderServiceClient)
 	orderHandler := servicehttp.NewOrderHandler(orderBuyerService)
+	merchantOrderBuyerService := applicationbuyer.NewMerchantOrderBuyerService(orderServiceClient)
+	merchantOrderHandler := servicehttp.NewMerchantOrderHandler(merchantOrderBuyerService)
 	paymentBuyerService := applicationbuyer.NewPaymentBuyerService(paymentServiceClient)
 	paymentHandler := servicehttp.NewPaymentHandler(paymentBuyerService)
 
 	router := servicehttp.NewRouter(servicehttp.RouterParams{
-		ServiceName:    cfg.ServiceName,
-		BuyerHandler:   buyerHandler,
-		ProductHandler: productHandler,
-		CartHandler:    cartHandler,
-		OrderHandler:   orderHandler,
-		PaymentHandler: paymentHandler,
+		ServiceName:          cfg.ServiceName,
+		BuyerHandler:         buyerHandler,
+		ProductHandler:       productHandler,
+		CartHandler:          cartHandler,
+		OrderHandler:         orderHandler,
+		MerchantOrderHandler: merchantOrderHandler,
+		PaymentHandler:       paymentHandler,
 	})
 	logger.Info("starting http server",
 		zap.String("addr", cfg.HTTPAddr),

@@ -18,6 +18,10 @@ type OrderServiceServer struct {
 	submitService       *applicationorder.SubmitOrderService
 	listService         *applicationorder.ListBuyerOrderGroupsService
 	getService          *applicationorder.GetBuyerOrderGroupDetailService
+	listMerchantService *applicationorder.ListMerchantShopOrdersService
+	getMerchantService  *applicationorder.GetMerchantShopOrderDetailService
+	markProcessingSvc   *applicationorder.MarkMerchantShopOrderProcessingService
+	markCompletedSvc    *applicationorder.MarkMerchantShopOrderCompletedService
 	getPaymentInfo      *applicationorder.GetOrderGroupPaymentInfoService
 	markPaidService     *applicationorder.MarkOrderGroupPaidService
 	closeTimeoutService *applicationorder.CloseOrderGroupByPaymentTimeoutService
@@ -27,6 +31,10 @@ func NewOrderServiceServer(
 	submitService *applicationorder.SubmitOrderService,
 	listService *applicationorder.ListBuyerOrderGroupsService,
 	getService *applicationorder.GetBuyerOrderGroupDetailService,
+	listMerchantService *applicationorder.ListMerchantShopOrdersService,
+	getMerchantService *applicationorder.GetMerchantShopOrderDetailService,
+	markProcessingSvc *applicationorder.MarkMerchantShopOrderProcessingService,
+	markCompletedSvc *applicationorder.MarkMerchantShopOrderCompletedService,
 	getPaymentInfo *applicationorder.GetOrderGroupPaymentInfoService,
 	markPaidService *applicationorder.MarkOrderGroupPaidService,
 	closeTimeoutService *applicationorder.CloseOrderGroupByPaymentTimeoutService,
@@ -35,6 +43,10 @@ func NewOrderServiceServer(
 		submitService:       submitService,
 		listService:         listService,
 		getService:          getService,
+		listMerchantService: listMerchantService,
+		getMerchantService:  getMerchantService,
+		markProcessingSvc:   markProcessingSvc,
+		markCompletedSvc:    markCompletedSvc,
 		getPaymentInfo:      getPaymentInfo,
 		markPaidService:     markPaidService,
 		closeTimeoutService: closeTimeoutService,
@@ -93,6 +105,64 @@ func (s *OrderServiceServer) GetBuyerOrderGroupDetail(ctx context.Context, req *
 	}
 
 	return &orderv1.GetBuyerOrderGroupDetailResponse{OrderGroup: toOrderGroupDetailPB(group)}, nil
+}
+
+func (s *OrderServiceServer) ListMerchantShopOrders(ctx context.Context, req *orderv1.ListMerchantShopOrdersRequest) (*orderv1.ListMerchantShopOrdersResponse, error) {
+	if req == nil {
+		return nil, status.Error(codes.InvalidArgument, "request is required")
+	}
+
+	result, err := s.listMerchantService.Execute(ctx, applicationorder.ListMerchantShopOrdersInput{
+		ShopID:   req.GetShopId(),
+		Page:     req.GetPage(),
+		PageSize: req.GetPageSize(),
+		Status:   req.GetStatus(),
+	})
+	if err != nil {
+		return nil, toGRPCError(err)
+	}
+
+	items := make([]*orderv1.MerchantShopOrderSummary, 0, len(result.ShopOrders))
+	for _, shopOrder := range result.ShopOrders {
+		items = append(items, toMerchantShopOrderSummaryPB(shopOrder))
+	}
+	return &orderv1.ListMerchantShopOrdersResponse{ShopOrders: items, Total: result.Total, Page: result.Page, PageSize: result.PageSize}, nil
+}
+
+func (s *OrderServiceServer) GetMerchantShopOrderDetail(ctx context.Context, req *orderv1.GetMerchantShopOrderDetailRequest) (*orderv1.GetMerchantShopOrderDetailResponse, error) {
+	if req == nil {
+		return nil, status.Error(codes.InvalidArgument, "request is required")
+	}
+
+	shopOrder, err := s.getMerchantService.Execute(ctx, req.GetShopId(), req.GetShopOrderId())
+	if err != nil {
+		return nil, toGRPCError(err)
+	}
+	return &orderv1.GetMerchantShopOrderDetailResponse{ShopOrder: toMerchantShopOrderDetailPB(shopOrder)}, nil
+}
+
+func (s *OrderServiceServer) MarkMerchantShopOrderProcessing(ctx context.Context, req *orderv1.MarkMerchantShopOrderProcessingRequest) (*orderv1.MarkMerchantShopOrderProcessingResponse, error) {
+	if req == nil {
+		return nil, status.Error(codes.InvalidArgument, "request is required")
+	}
+
+	shopOrder, err := s.markProcessingSvc.Execute(ctx, req.GetShopId(), req.GetShopOrderId())
+	if err != nil {
+		return nil, toGRPCError(err)
+	}
+	return &orderv1.MarkMerchantShopOrderProcessingResponse{ShopOrder: toMerchantShopOrderDetailPB(shopOrder)}, nil
+}
+
+func (s *OrderServiceServer) MarkMerchantShopOrderCompleted(ctx context.Context, req *orderv1.MarkMerchantShopOrderCompletedRequest) (*orderv1.MarkMerchantShopOrderCompletedResponse, error) {
+	if req == nil {
+		return nil, status.Error(codes.InvalidArgument, "request is required")
+	}
+
+	shopOrder, err := s.markCompletedSvc.Execute(ctx, req.GetShopId(), req.GetShopOrderId())
+	if err != nil {
+		return nil, toGRPCError(err)
+	}
+	return &orderv1.MarkMerchantShopOrderCompletedResponse{ShopOrder: toMerchantShopOrderDetailPB(shopOrder)}, nil
 }
 
 func (s *OrderServiceServer) GetOrderGroupPaymentInfo(ctx context.Context, req *orderv1.GetOrderGroupPaymentInfoRequest) (*orderv1.GetOrderGroupPaymentInfoResponse, error) {
@@ -325,6 +395,46 @@ func toPaymentInfoPB(info *domainorder.PaymentInfo) *orderv1.OrderGroupPaymentIn
 		Currency:          info.Currency,
 		PaymentDeadlineAt: info.PaymentDeadlineAt.Unix(),
 		PaidAt:            unixOrZero(info.PaidAt),
+	}
+}
+
+func toMerchantShopOrderSummaryPB(shopOrder *domainorder.MerchantShopOrderSummary) *orderv1.MerchantShopOrderSummary {
+	if shopOrder == nil {
+		return nil
+	}
+	return &orderv1.MerchantShopOrderSummary{
+		Id:                shopOrder.ID,
+		OrderGroupId:      shopOrder.OrderGroupID,
+		UserId:            shopOrder.UserID,
+		ShopId:            shopOrder.ShopID,
+		ShopName:          shopOrder.ShopName,
+		Status:            shopOrder.Status,
+		ItemAmount:        shopOrder.ItemAmount,
+		ShippingAmount:    shopOrder.ShippingAmount,
+		PayAmount:         shopOrder.PayAmount,
+		Currency:          shopOrder.Currency,
+		ItemCount:         shopOrder.ItemCount,
+		CreatedAt:         shopOrder.CreatedAt.Unix(),
+		UpdatedAt:         shopOrder.UpdatedAt.Unix(),
+		PaidAt:            unixOrZero(shopOrder.PaidAt),
+		OrderGroupStatus:  shopOrder.OrderGroupStatus,
+		PaymentDeadlineAt: shopOrder.PaymentDeadlineAt.Unix(),
+	}
+}
+
+func toMerchantShopOrderDetailPB(shopOrder *domainorder.MerchantShopOrderDetail) *orderv1.MerchantShopOrderDetail {
+	if shopOrder == nil {
+		return nil
+	}
+	return &orderv1.MerchantShopOrderDetail{
+		OrderGroupId:      shopOrder.OrderGroupID,
+		UserId:            shopOrder.UserID,
+		OrderGroupStatus:  shopOrder.OrderGroupStatus,
+		Source:            shopOrder.Source,
+		PaymentDeadlineAt: shopOrder.PaymentDeadlineAt.Unix(),
+		PaidAt:            unixOrZero(shopOrder.PaidAt),
+		Address:           toAddressSnapshotPB(shopOrder.Address),
+		ShopOrder:         toShopOrderPB(shopOrder.ShopOrder),
 	}
 }
 

@@ -127,6 +127,36 @@ type GroupSummary struct {
 	UpdatedAt           time.Time
 }
 
+type MerchantShopOrderSummary struct {
+	ID                int64
+	OrderGroupID      int64
+	UserID            int64
+	ShopID            int64
+	ShopName          string
+	Status            string
+	ItemAmount        int64
+	ShippingAmount    int64
+	PayAmount         int64
+	Currency          string
+	ItemCount         int32
+	OrderGroupStatus  string
+	PaymentDeadlineAt time.Time
+	PaidAt            *time.Time
+	CreatedAt         time.Time
+	UpdatedAt         time.Time
+}
+
+type MerchantShopOrderDetail struct {
+	OrderGroupID      int64
+	UserID            int64
+	OrderGroupStatus  string
+	Source            string
+	PaymentDeadlineAt time.Time
+	PaidAt            *time.Time
+	Address           *AddressSnapshot
+	ShopOrder         *ShopOrder
+}
+
 type PaymentInfo struct {
 	OrderGroupID      int64
 	UserID            int64

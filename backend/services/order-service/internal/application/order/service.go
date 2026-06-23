@@ -73,11 +73,25 @@ type ListBuyerOrderGroupsInput struct {
 	Status   string
 }
 
+type ListMerchantShopOrdersInput struct {
+	ShopID   int64
+	Page     int32
+	PageSize int32
+	Status   string
+}
+
 type ListBuyerOrderGroupsResult struct {
 	OrderGroups []*domainorder.GroupSummary
 	Total       int64
 	Page        int32
 	PageSize    int32
+}
+
+type ListMerchantShopOrdersResult struct {
+	ShopOrders []*domainorder.MerchantShopOrderSummary
+	Total      int64
+	Page       int32
+	PageSize   int32
 }
 
 type SubmitOrderService struct {
@@ -95,6 +109,24 @@ type ListBuyerOrderGroupsService struct {
 
 type GetBuyerOrderGroupDetailService struct {
 	repo domainorder.Repository
+}
+
+type ListMerchantShopOrdersService struct {
+	repo domainorder.Repository
+}
+
+type GetMerchantShopOrderDetailService struct {
+	repo domainorder.Repository
+}
+
+type MarkMerchantShopOrderProcessingService struct {
+	repo domainorder.Repository
+	now  func() time.Time
+}
+
+type MarkMerchantShopOrderCompletedService struct {
+	repo domainorder.Repository
+	now  func() time.Time
 }
 
 type GetOrderGroupPaymentInfoService struct {
@@ -128,6 +160,28 @@ func NewListBuyerOrderGroupsService(repo domainorder.Repository) *ListBuyerOrder
 
 func NewGetBuyerOrderGroupDetailService(repo domainorder.Repository) *GetBuyerOrderGroupDetailService {
 	return &GetBuyerOrderGroupDetailService{repo: repo}
+}
+
+func NewListMerchantShopOrdersService(repo domainorder.Repository) *ListMerchantShopOrdersService {
+	return &ListMerchantShopOrdersService{repo: repo}
+}
+
+func NewGetMerchantShopOrderDetailService(repo domainorder.Repository) *GetMerchantShopOrderDetailService {
+	return &GetMerchantShopOrderDetailService{repo: repo}
+}
+
+func NewMarkMerchantShopOrderProcessingService(repo domainorder.Repository, now func() time.Time) *MarkMerchantShopOrderProcessingService {
+	if now == nil {
+		now = time.Now
+	}
+	return &MarkMerchantShopOrderProcessingService{repo: repo, now: now}
+}
+
+func NewMarkMerchantShopOrderCompletedService(repo domainorder.Repository, now func() time.Time) *MarkMerchantShopOrderCompletedService {
+	if now == nil {
+		now = time.Now
+	}
+	return &MarkMerchantShopOrderCompletedService{repo: repo, now: now}
 }
 
 func NewGetOrderGroupPaymentInfoService(repo domainorder.Repository, now func() time.Time) *GetOrderGroupPaymentInfoService {
@@ -332,6 +386,59 @@ func (s *GetBuyerOrderGroupDetailService) Execute(ctx context.Context, userID, o
 	}
 
 	return s.repo.GetBuyerOrderGroupDetail(ctx, userID, orderGroupID)
+}
+
+func (s *ListMerchantShopOrdersService) Execute(ctx context.Context, input ListMerchantShopOrdersInput) (*ListMerchantShopOrdersResult, error) {
+	if input.ShopID <= 0 {
+		return nil, appErrors.InvalidArgument("shop id is required")
+	}
+	page := input.Page
+	if page <= 0 {
+		page = 1
+	}
+	pageSize := input.PageSize
+	if pageSize <= 0 {
+		pageSize = 20
+	}
+	if pageSize > 100 {
+		pageSize = 100
+	}
+
+	shopOrders, total, err := s.repo.ListMerchantShopOrders(ctx, domainorder.ListMerchantShopOrdersQuery{ShopID: input.ShopID, Page: page, PageSize: pageSize, Status: strings.TrimSpace(input.Status)})
+	if err != nil {
+		return nil, err
+	}
+	return &ListMerchantShopOrdersResult{ShopOrders: shopOrders, Total: total, Page: page, PageSize: pageSize}, nil
+}
+
+func (s *GetMerchantShopOrderDetailService) Execute(ctx context.Context, shopID, shopOrderID int64) (*domainorder.MerchantShopOrderDetail, error) {
+	if shopID <= 0 {
+		return nil, appErrors.InvalidArgument("shop id is required")
+	}
+	if shopOrderID <= 0 {
+		return nil, appErrors.InvalidArgument("shop order id is required")
+	}
+	return s.repo.GetMerchantShopOrderDetail(ctx, shopID, shopOrderID)
+}
+
+func (s *MarkMerchantShopOrderProcessingService) Execute(ctx context.Context, shopID, shopOrderID int64) (*domainorder.MerchantShopOrderDetail, error) {
+	if shopID <= 0 {
+		return nil, appErrors.InvalidArgument("shop id is required")
+	}
+	if shopOrderID <= 0 {
+		return nil, appErrors.InvalidArgument("shop order id is required")
+	}
+	return s.repo.MarkMerchantShopOrderProcessing(ctx, shopID, shopOrderID, s.now().UTC())
+}
+
+func (s *MarkMerchantShopOrderCompletedService) Execute(ctx context.Context, shopID, shopOrderID int64) (*domainorder.MerchantShopOrderDetail, error) {
+	if shopID <= 0 {
+		return nil, appErrors.InvalidArgument("shop id is required")
+	}
+	if shopOrderID <= 0 {
+		return nil, appErrors.InvalidArgument("shop order id is required")
+	}
+	return s.repo.MarkMerchantShopOrderCompleted(ctx, shopID, shopOrderID, s.now().UTC())
 }
 
 func (s *GetOrderGroupPaymentInfoService) Execute(ctx context.Context, userID, orderGroupID int64) (*domainorder.PaymentInfo, error) {

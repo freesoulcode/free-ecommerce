@@ -60,6 +60,42 @@ func (c *Client) GetBuyerOrderGroupDetail(ctx context.Context, userID, orderGrou
 	return toOrderGroupDetail(resp.GetOrderGroup()), nil
 }
 
+func (c *Client) ListMerchantShopOrders(ctx context.Context, input applicationbuyer.ListMerchantShopOrdersInput) (*applicationbuyer.ListMerchantShopOrdersResult, error) {
+	resp, err := c.client.ListMerchantShopOrders(ctx, &orderv1.ListMerchantShopOrdersRequest{ShopId: input.ShopID, Page: input.Page, PageSize: input.PageSize, Status: input.Status})
+	if err != nil {
+		return nil, toAppError(err)
+	}
+	items := make([]*applicationbuyer.MerchantShopOrderSummary, 0, len(resp.GetShopOrders()))
+	for _, shopOrder := range resp.GetShopOrders() {
+		items = append(items, toMerchantShopOrderSummary(shopOrder))
+	}
+	return &applicationbuyer.ListMerchantShopOrdersResult{ShopOrders: items, Total: resp.GetTotal(), Page: resp.GetPage(), PageSize: resp.GetPageSize()}, nil
+}
+
+func (c *Client) GetMerchantShopOrderDetail(ctx context.Context, shopID, shopOrderID int64) (*applicationbuyer.MerchantShopOrderDetail, error) {
+	resp, err := c.client.GetMerchantShopOrderDetail(ctx, &orderv1.GetMerchantShopOrderDetailRequest{ShopId: shopID, ShopOrderId: shopOrderID})
+	if err != nil {
+		return nil, toAppError(err)
+	}
+	return toMerchantShopOrderDetail(resp.GetShopOrder()), nil
+}
+
+func (c *Client) MarkMerchantShopOrderProcessing(ctx context.Context, shopID, shopOrderID int64) (*applicationbuyer.MerchantShopOrderDetail, error) {
+	resp, err := c.client.MarkMerchantShopOrderProcessing(ctx, &orderv1.MarkMerchantShopOrderProcessingRequest{ShopId: shopID, ShopOrderId: shopOrderID})
+	if err != nil {
+		return nil, toAppError(err)
+	}
+	return toMerchantShopOrderDetail(resp.GetShopOrder()), nil
+}
+
+func (c *Client) MarkMerchantShopOrderCompleted(ctx context.Context, shopID, shopOrderID int64) (*applicationbuyer.MerchantShopOrderDetail, error) {
+	resp, err := c.client.MarkMerchantShopOrderCompleted(ctx, &orderv1.MarkMerchantShopOrderCompletedRequest{ShopId: shopID, ShopOrderId: shopOrderID})
+	if err != nil {
+		return nil, toAppError(err)
+	}
+	return toMerchantShopOrderDetail(resp.GetShopOrder()), nil
+}
+
 func toAppError(err error) error {
 	st, ok := status.FromError(err)
 	if !ok {
@@ -129,4 +165,18 @@ func toOrderGroupDetail(group *orderv1.OrderGroupDetail) *applicationbuyer.Order
 		shopOrders = append(shopOrders, toShopOrder(shopOrder))
 	}
 	return &applicationbuyer.OrderGroupDetail{ID: group.GetId(), UserID: group.GetUserId(), Status: group.GetStatus(), Source: group.GetSource(), TotalItemAmount: group.GetTotalItemAmount(), TotalShippingAmount: group.GetTotalShippingAmount(), TotalPayAmount: group.GetTotalPayAmount(), Currency: group.GetCurrency(), ShopOrderCount: group.GetShopOrderCount(), ItemCount: group.GetItemCount(), PaymentDeadlineAt: group.GetPaymentDeadlineAt(), PaidAt: group.GetPaidAt(), Address: toAddressSnapshot(group.GetAddress()), ShopOrders: shopOrders, CreatedAt: group.GetCreatedAt(), UpdatedAt: group.GetUpdatedAt()}
+}
+
+func toMerchantShopOrderSummary(shopOrder *orderv1.MerchantShopOrderSummary) *applicationbuyer.MerchantShopOrderSummary {
+	if shopOrder == nil {
+		return nil
+	}
+	return &applicationbuyer.MerchantShopOrderSummary{ID: shopOrder.GetId(), OrderGroupID: shopOrder.GetOrderGroupId(), UserID: shopOrder.GetUserId(), ShopID: shopOrder.GetShopId(), ShopName: shopOrder.GetShopName(), Status: shopOrder.GetStatus(), ItemAmount: shopOrder.GetItemAmount(), ShippingAmount: shopOrder.GetShippingAmount(), PayAmount: shopOrder.GetPayAmount(), Currency: shopOrder.GetCurrency(), ItemCount: shopOrder.GetItemCount(), PaidAt: shopOrder.GetPaidAt(), CreatedAt: shopOrder.GetCreatedAt(), UpdatedAt: shopOrder.GetUpdatedAt(), OrderGroupStatus: shopOrder.GetOrderGroupStatus(), PaymentDeadlineAt: shopOrder.GetPaymentDeadlineAt()}
+}
+
+func toMerchantShopOrderDetail(shopOrder *orderv1.MerchantShopOrderDetail) *applicationbuyer.MerchantShopOrderDetail {
+	if shopOrder == nil {
+		return nil
+	}
+	return &applicationbuyer.MerchantShopOrderDetail{OrderGroupID: shopOrder.GetOrderGroupId(), UserID: shopOrder.GetUserId(), OrderGroupStatus: shopOrder.GetOrderGroupStatus(), Source: shopOrder.GetSource(), PaymentDeadlineAt: shopOrder.GetPaymentDeadlineAt(), PaidAt: shopOrder.GetPaidAt(), Address: toAddressSnapshot(shopOrder.GetAddress()), ShopOrder: toShopOrder(shopOrder.GetShopOrder())}
 }
