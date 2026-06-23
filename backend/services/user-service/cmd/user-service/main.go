@@ -47,11 +47,12 @@ func main() {
 	createUserService := applicationuser.NewCreateUserService(userRepo, idGenerator, nil)
 	deleteUserService := applicationuser.NewDeleteUserService(userRepo)
 	getUserService := applicationuser.NewGetUserService(userRepo)
+	getAddressService := applicationuser.NewGetAddressService(userRepo)
 	createAddressService := applicationuser.NewCreateAddressService(userRepo, idGenerator, nil)
 	updateAddressService := applicationuser.NewUpdateAddressService(userRepo, nil)
 	deleteAddressService := applicationuser.NewDeleteAddressService(userRepo, nil)
 	listAddressesService := applicationuser.NewListAddressesService(userRepo)
-	userGRPCServer := servicegrpc.NewUserServiceServer(createUserService, deleteUserService, getUserService, createAddressService, updateAddressService, deleteAddressService, listAddressesService)
+	userGRPCServer := servicegrpc.NewUserServiceServer(createUserService, deleteUserService, getUserService, getAddressService, createAddressService, updateAddressService, deleteAddressService, listAddressesService)
 
 	grpcListener, err := net.Listen("tcp", cfg.GRPCAddr)
 	if err != nil {

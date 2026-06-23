@@ -1,0 +1,152 @@
+syntax = "proto3";
+
+package order.v1;
+
+option go_package = "github.com/freesoulcode/free-ecommerce/gen/go/proto/order/v1;orderv1";
+
+service OrderService {
+  rpc SubmitOrder(SubmitOrderRequest) returns (SubmitOrderResponse);
+  rpc ListBuyerOrderGroups(ListBuyerOrderGroupsRequest) returns (ListBuyerOrderGroupsResponse);
+  rpc GetBuyerOrderGroupDetail(GetBuyerOrderGroupDetailRequest) returns (GetBuyerOrderGroupDetailResponse);
+}
+
+message AddressSnapshot {
+  int64 id = 1;
+  int64 order_group_id = 2;
+  int64 user_id = 3;
+  string receiver_name = 4;
+  string receiver_phone = 5;
+  string country_code = 6;
+  string province = 7;
+  string city = 8;
+  string district = 9;
+  string address_line1 = 10;
+  string address_line2 = 11;
+  string postal_code = 12;
+  string tag = 13;
+  int64 created_at = 14;
+  int64 updated_at = 15;
+}
+
+message OrderItem {
+  int64 id = 1;
+  int64 order_group_id = 2;
+  int64 shop_order_id = 3;
+  int64 user_id = 4;
+  int64 shop_id = 5;
+  int64 product_id = 6;
+  int64 sku_id = 7;
+  string product_title = 8;
+  string product_sub_title = 9;
+  string main_image_url = 10;
+  string sku_name = 11;
+  int64 price_amount = 12;
+  string currency = 13;
+  int32 quantity = 14;
+  int64 item_amount = 15;
+  string review_status_snapshot = 16;
+  string product_sale_status_snapshot = 17;
+  string sku_sale_status_snapshot = 18;
+  int64 created_at = 19;
+  int64 updated_at = 20;
+}
+
+message ShopOrderSummary {
+  int64 id = 1;
+  int64 order_group_id = 2;
+  int64 user_id = 3;
+  int64 shop_id = 4;
+  string shop_name = 5;
+  string status = 6;
+  int64 item_amount = 7;
+  int64 shipping_amount = 8;
+  int64 pay_amount = 9;
+  string currency = 10;
+  int32 item_count = 11;
+  int64 created_at = 12;
+  int64 updated_at = 13;
+}
+
+message ShopOrder {
+  int64 id = 1;
+  int64 order_group_id = 2;
+  int64 user_id = 3;
+  int64 shop_id = 4;
+  string shop_name = 5;
+  string status = 6;
+  int64 item_amount = 7;
+  int64 shipping_amount = 8;
+  int64 pay_amount = 9;
+  string currency = 10;
+  int32 item_count = 11;
+  repeated OrderItem items = 12;
+  int64 created_at = 13;
+  int64 updated_at = 14;
+}
+
+message OrderGroupSummary {
+  int64 id = 1;
+  int64 user_id = 2;
+  string status = 3;
+  string source = 4;
+  int64 total_item_amount = 5;
+  int64 total_shipping_amount = 6;
+  int64 total_pay_amount = 7;
+  string currency = 8;
+  int32 shop_order_count = 9;
+  int32 item_count = 10;
+  repeated ShopOrderSummary shop_orders = 11;
+  int64 created_at = 12;
+  int64 updated_at = 13;
+}
+
+message OrderGroupDetail {
+  int64 id = 1;
+  int64 user_id = 2;
+  string status = 3;
+  string source = 4;
+  int64 total_item_amount = 5;
+  int64 total_shipping_amount = 6;
+  int64 total_pay_amount = 7;
+  string currency = 8;
+  int32 shop_order_count = 9;
+  int32 item_count = 10;
+  AddressSnapshot address = 11;
+  repeated ShopOrder shop_orders = 12;
+  int64 created_at = 13;
+  int64 updated_at = 14;
+}
+
+message SubmitOrderRequest {
+  int64 user_id = 1;
+  int64 address_id = 2;
+  repeated int64 cart_item_ids = 3;
+  string source = 4;
+}
+
+message SubmitOrderResponse {
+  OrderGroupDetail order_group = 1;
+}
+
+message ListBuyerOrderGroupsRequest {
+  int64 user_id = 1;
+  int32 page = 2;
+  int32 page_size = 3;
+  string status = 4;
+}
+
+message ListBuyerOrderGroupsResponse {
+  repeated OrderGroupSummary order_groups = 1;
+  int64 total = 2;
+  int32 page = 3;
+  int32 page_size = 4;
+}
+
+message GetBuyerOrderGroupDetailRequest {
+  int64 user_id = 1;
+  int64 order_group_id = 2;
+}
+
+message GetBuyerOrderGroupDetailResponse {
+  OrderGroupDetail order_group = 1;
+}

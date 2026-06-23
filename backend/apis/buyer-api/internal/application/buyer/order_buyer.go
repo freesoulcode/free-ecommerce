@@ -1,0 +1,168 @@
+package buyer
+
+import (
+	"context"
+
+	appErrors "github.com/freesoulcode/free-ecommerce/backend/pkg/errors"
+)
+
+type OrderAddressSnapshot struct {
+	ID            int64
+	OrderGroupID  int64
+	UserID        int64
+	ReceiverName  string
+	ReceiverPhone string
+	CountryCode   string
+	Province      string
+	City          string
+	District      string
+	AddressLine1  string
+	AddressLine2  string
+	PostalCode    string
+	Tag           string
+	CreatedAt     int64
+	UpdatedAt     int64
+}
+
+type OrderItem struct {
+	ID                        int64
+	OrderGroupID              int64
+	ShopOrderID               int64
+	UserID                    int64
+	ShopID                    int64
+	ProductID                 int64
+	SKUID                     int64
+	ProductTitle              string
+	ProductSubTitle           string
+	MainImageURL              string
+	SKUName                   string
+	PriceAmount               int64
+	Currency                  string
+	Quantity                  int32
+	ItemAmount                int64
+	ReviewStatusSnapshot      string
+	ProductSaleStatusSnapshot string
+	SKUSaleStatusSnapshot     string
+	CreatedAt                 int64
+	UpdatedAt                 int64
+}
+
+type ShopOrderSummary struct {
+	ID             int64
+	OrderGroupID   int64
+	UserID         int64
+	ShopID         int64
+	ShopName       string
+	Status         string
+	ItemAmount     int64
+	ShippingAmount int64
+	PayAmount      int64
+	Currency       string
+	ItemCount      int32
+	CreatedAt      int64
+	UpdatedAt      int64
+}
+
+type ShopOrder struct {
+	ID             int64
+	OrderGroupID   int64
+	UserID         int64
+	ShopID         int64
+	ShopName       string
+	Status         string
+	ItemAmount     int64
+	ShippingAmount int64
+	PayAmount      int64
+	Currency       string
+	ItemCount      int32
+	Items          []*OrderItem
+	CreatedAt      int64
+	UpdatedAt      int64
+}
+
+type OrderGroupSummary struct {
+	ID                  int64
+	UserID              int64
+	Status              string
+	Source              string
+	TotalItemAmount     int64
+	TotalShippingAmount int64
+	TotalPayAmount      int64
+	Currency            string
+	ShopOrderCount      int32
+	ItemCount           int32
+	ShopOrders          []*ShopOrderSummary
+	CreatedAt           int64
+	UpdatedAt           int64
+}
+
+type OrderGroupDetail struct {
+	ID                  int64
+	UserID              int64
+	Status              string
+	Source              string
+	TotalItemAmount     int64
+	TotalShippingAmount int64
+	TotalPayAmount      int64
+	Currency            string
+	ShopOrderCount      int32
+	ItemCount           int32
+	Address             *OrderAddressSnapshot
+	ShopOrders          []*ShopOrder
+	CreatedAt           int64
+	UpdatedAt           int64
+}
+
+type SubmitOrderInput struct {
+	UserID      int64
+	AddressID   int64
+	CartItemIDs []int64
+	Source      string
+}
+
+type ListOrdersInput struct {
+	UserID   int64
+	Page     int32
+	PageSize int32
+	Status   string
+}
+
+type ListOrdersResult struct {
+	OrderGroups []*OrderGroupSummary
+	Total       int64
+	Page        int32
+	PageSize    int32
+}
+
+type OrderServiceClient interface {
+	SubmitOrder(ctx context.Context, input SubmitOrderInput) (*OrderGroupDetail, error)
+	ListBuyerOrderGroups(ctx context.Context, input ListOrdersInput) (*ListOrdersResult, error)
+	GetBuyerOrderGroupDetail(ctx context.Context, userID, orderGroupID int64) (*OrderGroupDetail, error)
+}
+
+type OrderBuyerService struct{ client OrderServiceClient }
+
+func NewOrderBuyerService(client OrderServiceClient) *OrderBuyerService {
+	return &OrderBuyerService{client: client}
+}
+
+func (s *OrderBuyerService) Submit(ctx context.Context, input SubmitOrderInput) (*OrderGroupDetail, error) {
+	if s.client == nil {
+		return nil, appErrors.Internal("order service is not configured")
+	}
+	return s.client.SubmitOrder(ctx, input)
+}
+
+func (s *OrderBuyerService) List(ctx context.Context, input ListOrdersInput) (*ListOrdersResult, error) {
+	if s.client == nil {
+		return nil, appErrors.Internal("order service is not configured")
+	}
+	return s.client.ListBuyerOrderGroups(ctx, input)
+}
+
+func (s *OrderBuyerService) Detail(ctx context.Context, userID, orderGroupID int64) (*OrderGroupDetail, error) {
+	if s.client == nil {
+		return nil, appErrors.Internal("order service is not configured")
+	}
+	return s.client.GetBuyerOrderGroupDetail(ctx, userID, orderGroupID)
+}

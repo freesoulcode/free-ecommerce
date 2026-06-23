@@ -18,6 +18,7 @@ type Config struct {
 	AuthService    AuthServiceConfig
 	ProductService ProductServiceConfig
 	CartService    CartServiceConfig
+	OrderService   OrderServiceConfig
 }
 
 type UserServiceConfig struct {
@@ -33,6 +34,10 @@ type ProductServiceConfig struct {
 }
 
 type CartServiceConfig struct {
+	GRPCAddr string
+}
+
+type OrderServiceConfig struct {
 	GRPCAddr string
 }
 
@@ -53,6 +58,9 @@ func Load() Config {
 		},
 		CartService: CartServiceConfig{
 			GRPCAddr: getEnv("BUYER_API_CART_SERVICE_GRPC_ADDR", "127.0.0.1:9084"),
+		},
+		OrderService: OrderServiceConfig{
+			GRPCAddr: getEnv("BUYER_API_ORDER_SERVICE_GRPC_ADDR", "127.0.0.1:9085"),
 		},
 	}
 }

@@ -66,6 +66,10 @@ type ListAddressesService struct {
 	repo domainuser.Repository
 }
 
+type GetAddressService struct {
+	repo domainuser.Repository
+}
+
 func NewCreateAddressService(repo domainuser.Repository, idGenerator IDGenerator, now func() time.Time) *CreateAddressService {
 	if now == nil {
 		now = time.Now
@@ -92,6 +96,10 @@ func NewDeleteAddressService(repo domainuser.Repository, now func() time.Time) *
 
 func NewListAddressesService(repo domainuser.Repository) *ListAddressesService {
 	return &ListAddressesService{repo: repo}
+}
+
+func NewGetAddressService(repo domainuser.Repository) *GetAddressService {
+	return &GetAddressService{repo: repo}
 }
 
 func (s *CreateAddressService) Execute(ctx context.Context, input CreateAddressInput) (*domainuser.Address, error) {
@@ -236,4 +244,18 @@ func (s *ListAddressesService) Execute(ctx context.Context, userID int64) ([]*do
 	}
 
 	return s.repo.ListAddressesByUserID(ctx, userID)
+}
+
+func (s *GetAddressService) Execute(ctx context.Context, userID, addressID int64) (*domainuser.Address, error) {
+	if userID <= 0 {
+		return nil, appErrors.InvalidArgument("user id is required")
+	}
+	if addressID <= 0 {
+		return nil, appErrors.InvalidArgument("address id is required")
+	}
+	if _, err := s.repo.FindByID(ctx, userID); err != nil {
+		return nil, err
+	}
+
+	return s.repo.FindAddressByID(ctx, userID, addressID)
 }

@@ -13,6 +13,7 @@ type RouterParams struct {
 	BuyerHandler   *BuyerHandler
 	ProductHandler *ProductHandler
 	CartHandler    *CartHandler
+	OrderHandler   *OrderHandler
 }
 
 func NewRouter(params RouterParams) *gin.Engine {
@@ -44,6 +45,9 @@ func NewRouter(params RouterParams) *gin.Engine {
 	}
 	if params.CartHandler != nil {
 		params.CartHandler.RegisterRoutes(router)
+	}
+	if params.OrderHandler != nil {
+		params.OrderHandler.RegisterRoutes(router)
 	}
 
 	return router

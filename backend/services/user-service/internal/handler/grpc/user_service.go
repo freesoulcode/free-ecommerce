@@ -14,9 +14,10 @@ import (
 type UserServiceServer struct {
 	userv1.UnimplementedUserServiceServer
 
-	createUserService *applicationuser.CreateUserService
-	deleteUserService *applicationuser.DeleteUserService
-	getUserService    *applicationuser.GetUserService
+	createUserService    *applicationuser.CreateUserService
+	deleteUserService    *applicationuser.DeleteUserService
+	getUserService       *applicationuser.GetUserService
+	getAddressService    *applicationuser.GetAddressService
 	createAddressService *applicationuser.CreateAddressService
 	updateAddressService *applicationuser.UpdateAddressService
 	deleteAddressService *applicationuser.DeleteAddressService
@@ -27,6 +28,7 @@ func NewUserServiceServer(
 	createUserService *applicationuser.CreateUserService,
 	deleteUserService *applicationuser.DeleteUserService,
 	getUserService *applicationuser.GetUserService,
+	getAddressService *applicationuser.GetAddressService,
 	createAddressService *applicationuser.CreateAddressService,
 	updateAddressService *applicationuser.UpdateAddressService,
 	deleteAddressService *applicationuser.DeleteAddressService,
@@ -36,6 +38,7 @@ func NewUserServiceServer(
 		createUserService:    createUserService,
 		deleteUserService:    deleteUserService,
 		getUserService:       getUserService,
+		getAddressService:    getAddressService,
 		createAddressService: createAddressService,
 		updateAddressService: updateAddressService,
 		deleteAddressService: deleteAddressService,
@@ -125,6 +128,19 @@ func (s *UserServiceServer) CreateAddress(ctx context.Context, req *userv1.Creat
 	}
 
 	return &userv1.CreateAddressResponse{Address: toAddressPB(address)}, nil
+}
+
+func (s *UserServiceServer) GetAddress(ctx context.Context, req *userv1.GetAddressRequest) (*userv1.GetAddressResponse, error) {
+	if req == nil {
+		return nil, status.Error(codes.InvalidArgument, "request is required")
+	}
+
+	address, err := s.getAddressService.Execute(ctx, req.GetUserId(), req.GetId())
+	if err != nil {
+		return nil, toGRPCError(err)
+	}
+
+	return &userv1.GetAddressResponse{Address: toAddressPB(address)}, nil
 }
 
 func (s *UserServiceServer) UpdateAddress(ctx context.Context, req *userv1.UpdateAddressRequest) (*userv1.UpdateAddressResponse, error) {

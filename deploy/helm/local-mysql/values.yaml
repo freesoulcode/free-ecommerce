@@ -23,5 +23,6 @@ databases:
   - auth_service
   - product_service
   - cart_service
+  - order_service
 
 resources: {}
