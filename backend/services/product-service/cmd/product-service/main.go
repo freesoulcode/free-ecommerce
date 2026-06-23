@@ -37,7 +37,8 @@ func main() {
 	repo := servicepersistence.NewProductRepository(db)
 	listService := applicationproduct.NewListPublicProductsService(repo)
 	getService := applicationproduct.NewGetPublicProductService(repo)
-	productGRPCServer := servicegrpc.NewProductServiceServer(listService, getService)
+	batchSkuService := applicationproduct.NewBatchGetSkuBriefsService(repo)
+	productGRPCServer := servicegrpc.NewProductServiceServer(listService, getService, batchSkuService)
 
 	grpcListener, err := net.Listen("tcp", cfg.GRPCAddr)
 	if err != nil {

@@ -55,6 +55,23 @@ type listPublicProductRow struct {
 	TotalStock     int32  `gorm:"column:total_stock"`
 }
 
+type skuBriefRow struct {
+	SKUID             int64  `gorm:"column:sku_id"`
+	ProductID         int64  `gorm:"column:product_id"`
+	ShopID            int64  `gorm:"column:shop_id"`
+	ShopName          string `gorm:"column:shop_name"`
+	ProductTitle      string `gorm:"column:product_title"`
+	ProductSubTitle   string `gorm:"column:product_sub_title"`
+	MainImageURL      string `gorm:"column:main_image_url"`
+	SKUName           string `gorm:"column:sku_name"`
+	PriceAmount       int64  `gorm:"column:price_amount"`
+	Currency          string `gorm:"column:currency"`
+	Stock             int32  `gorm:"column:stock"`
+	ReviewStatus      string `gorm:"column:review_status"`
+	ProductSaleStatus string `gorm:"column:product_sale_status"`
+	SKUSaleStatus     string `gorm:"column:sku_sale_status"`
+}
+
 type ProductRepository struct{ db *gorm.DB }
 
 func NewProductRepository(db *gorm.DB) *ProductRepository { return &ProductRepository{db: db} }
@@ -179,6 +196,59 @@ func (r *ProductRepository) GetPublicProduct(ctx context.Context, id int64) (*do
 	}
 
 	return detail, nil
+}
+
+func (r *ProductRepository) BatchGetSkuBriefs(ctx context.Context, skuIDs []int64) ([]*domainproduct.SkuBrief, error) {
+	if len(skuIDs) == 0 {
+		return []*domainproduct.SkuBrief{}, nil
+	}
+
+	var rows []skuBriefRow
+	if err := r.db.WithContext(ctx).
+		Table("product_skus AS s").
+		Select([]string{
+			"s.id AS sku_id",
+			"s.product_id AS product_id",
+			"p.shop_id AS shop_id",
+			"p.shop_name AS shop_name",
+			"p.title AS product_title",
+			"p.sub_title AS product_sub_title",
+			"p.main_image_url AS main_image_url",
+			"s.name AS sku_name",
+			"s.price_amount AS price_amount",
+			"s.currency AS currency",
+			"s.stock AS stock",
+			"p.review_status AS review_status",
+			"p.sale_status AS product_sale_status",
+			"s.sale_status AS sku_sale_status",
+		}).
+		Joins("JOIN products p ON p.id = s.product_id").
+		Where("s.id IN ?", skuIDs).
+		Find(&rows).Error; err != nil {
+		return nil, fmt.Errorf("batch get sku briefs: %w", err)
+	}
+
+	briefs := make([]*domainproduct.SkuBrief, 0, len(rows))
+	for _, row := range rows {
+		briefs = append(briefs, &domainproduct.SkuBrief{
+			SKUID:             row.SKUID,
+			ProductID:         row.ProductID,
+			ShopID:            row.ShopID,
+			ShopName:          row.ShopName,
+			ProductTitle:      row.ProductTitle,
+			ProductSubTitle:   row.ProductSubTitle,
+			MainImageURL:      row.MainImageURL,
+			SKUName:           row.SKUName,
+			PriceAmount:       row.PriceAmount,
+			Currency:          row.Currency,
+			Stock:             row.Stock,
+			ReviewStatus:      row.ReviewStatus,
+			ProductSaleStatus: row.ProductSaleStatus,
+			SKUSaleStatus:     row.SKUSaleStatus,
+		})
+	}
+
+	return briefs, nil
 }
 
 func buildPublicProductWhere(query domainproduct.ListPublicProductsQuery) (string, []any) {

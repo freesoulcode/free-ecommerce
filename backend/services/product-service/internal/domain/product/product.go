@@ -29,6 +29,23 @@ type SKU struct {
 	SaleStatus  string
 }
 
+type SkuBrief struct {
+	SKUID             int64
+	ProductID         int64
+	ShopID            int64
+	ShopName          string
+	ProductTitle      string
+	ProductSubTitle   string
+	MainImageURL      string
+	SKUName           string
+	PriceAmount       int64
+	Currency          string
+	Stock             int32
+	ReviewStatus      string
+	ProductSaleStatus string
+	SKUSaleStatus     string
+}
+
 type Detail struct {
 	ID             int64
 	ShopID         int64

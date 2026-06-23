@@ -13,12 +13,13 @@ import (
 
 type ProductServiceServer struct {
 	productv1.UnimplementedProductServiceServer
-	listService *applicationproduct.ListPublicProductsService
-	getService  *applicationproduct.GetPublicProductService
+	listService     *applicationproduct.ListPublicProductsService
+	getService      *applicationproduct.GetPublicProductService
+	batchSkuService *applicationproduct.BatchGetSkuBriefsService
 }
 
-func NewProductServiceServer(listService *applicationproduct.ListPublicProductsService, getService *applicationproduct.GetPublicProductService) *ProductServiceServer {
-	return &ProductServiceServer{listService: listService, getService: getService}
+func NewProductServiceServer(listService *applicationproduct.ListPublicProductsService, getService *applicationproduct.GetPublicProductService, batchSkuService *applicationproduct.BatchGetSkuBriefsService) *ProductServiceServer {
+	return &ProductServiceServer{listService: listService, getService: getService, batchSkuService: batchSkuService}
 }
 
 func (s *ProductServiceServer) ListPublicProducts(ctx context.Context, req *productv1.ListPublicProductsRequest) (*productv1.ListPublicProductsResponse, error) {
@@ -86,6 +87,39 @@ func (s *ProductServiceServer) GetPublicProduct(ctx context.Context, req *produc
 		TotalStock:     product.TotalStock,
 		Skus:           skus,
 	}}, nil
+}
+
+func (s *ProductServiceServer) BatchGetSkuBriefs(ctx context.Context, req *productv1.BatchGetSkuBriefsRequest) (*productv1.BatchGetSkuBriefsResponse, error) {
+	if req == nil {
+		return nil, status.Error(codes.InvalidArgument, "request is required")
+	}
+
+	briefs, err := s.batchSkuService.Execute(ctx, req.GetSkuIds())
+	if err != nil {
+		return nil, toGRPCError(err)
+	}
+
+	items := make([]*productv1.SkuBrief, 0, len(briefs))
+	for _, brief := range briefs {
+		items = append(items, &productv1.SkuBrief{
+			SkuId:             brief.SKUID,
+			ProductId:         brief.ProductID,
+			ShopId:            brief.ShopID,
+			ShopName:          brief.ShopName,
+			ProductTitle:      brief.ProductTitle,
+			ProductSubTitle:   brief.ProductSubTitle,
+			MainImageUrl:      brief.MainImageURL,
+			SkuName:           brief.SKUName,
+			PriceAmount:       brief.PriceAmount,
+			Currency:          brief.Currency,
+			Stock:             brief.Stock,
+			ReviewStatus:      brief.ReviewStatus,
+			ProductSaleStatus: brief.ProductSaleStatus,
+			SkuSaleStatus:     brief.SKUSaleStatus,
+		})
+	}
+
+	return &productv1.BatchGetSkuBriefsResponse{Skus: items}, nil
 }
 
 func toGRPCError(err error) error {

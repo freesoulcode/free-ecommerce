@@ -21,6 +21,7 @@ const _ = grpc.SupportPackageIsVersion9
 const (
 	ProductService_ListPublicProducts_FullMethodName = "/product.v1.ProductService/ListPublicProducts"
 	ProductService_GetPublicProduct_FullMethodName   = "/product.v1.ProductService/GetPublicProduct"
+	ProductService_BatchGetSkuBriefs_FullMethodName  = "/product.v1.ProductService/BatchGetSkuBriefs"
 )
 
 // ProductServiceClient is the client API for ProductService service.
@@ -29,6 +30,7 @@ const (
 type ProductServiceClient interface {
 	ListPublicProducts(ctx context.Context, in *ListPublicProductsRequest, opts ...grpc.CallOption) (*ListPublicProductsResponse, error)
 	GetPublicProduct(ctx context.Context, in *GetPublicProductRequest, opts ...grpc.CallOption) (*GetPublicProductResponse, error)
+	BatchGetSkuBriefs(ctx context.Context, in *BatchGetSkuBriefsRequest, opts ...grpc.CallOption) (*BatchGetSkuBriefsResponse, error)
 }
 
 type productServiceClient struct {
@@ -59,12 +61,23 @@ func (c *productServiceClient) GetPublicProduct(ctx context.Context, in *GetPubl
 	return out, nil
 }
 
+func (c *productServiceClient) BatchGetSkuBriefs(ctx context.Context, in *BatchGetSkuBriefsRequest, opts ...grpc.CallOption) (*BatchGetSkuBriefsResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(BatchGetSkuBriefsResponse)
+	err := c.cc.Invoke(ctx, ProductService_BatchGetSkuBriefs_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // ProductServiceServer is the server API for ProductService service.
 // All implementations must embed UnimplementedProductServiceServer
 // for forward compatibility.
 type ProductServiceServer interface {
 	ListPublicProducts(context.Context, *ListPublicProductsRequest) (*ListPublicProductsResponse, error)
 	GetPublicProduct(context.Context, *GetPublicProductRequest) (*GetPublicProductResponse, error)
+	BatchGetSkuBriefs(context.Context, *BatchGetSkuBriefsRequest) (*BatchGetSkuBriefsResponse, error)
 	mustEmbedUnimplementedProductServiceServer()
 }
 
@@ -80,6 +93,9 @@ func (UnimplementedProductServiceServer) ListPublicProducts(context.Context, *Li
 }
 func (UnimplementedProductServiceServer) GetPublicProduct(context.Context, *GetPublicProductRequest) (*GetPublicProductResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method GetPublicProduct not implemented")
+}
+func (UnimplementedProductServiceServer) BatchGetSkuBriefs(context.Context, *BatchGetSkuBriefsRequest) (*BatchGetSkuBriefsResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method BatchGetSkuBriefs not implemented")
 }
 func (UnimplementedProductServiceServer) mustEmbedUnimplementedProductServiceServer() {}
 func (UnimplementedProductServiceServer) testEmbeddedByValue()                        {}
@@ -138,6 +154,24 @@ func _ProductService_GetPublicProduct_Handler(srv interface{}, ctx context.Conte
 	return interceptor(ctx, in, info, handler)
 }
 
+func _ProductService_BatchGetSkuBriefs_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(BatchGetSkuBriefsRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(ProductServiceServer).BatchGetSkuBriefs(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: ProductService_BatchGetSkuBriefs_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(ProductServiceServer).BatchGetSkuBriefs(ctx, req.(*BatchGetSkuBriefsRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // ProductService_ServiceDesc is the grpc.ServiceDesc for ProductService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -152,6 +186,10 @@ var ProductService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "GetPublicProduct",
 			Handler:    _ProductService_GetPublicProduct_Handler,
+		},
+		{
+			MethodName: "BatchGetSkuBriefs",
+			Handler:    _ProductService_BatchGetSkuBriefs_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},
