@@ -1,0 +1,25 @@
+nameOverride: ""
+fullnameOverride: ""
+
+image:
+  repository: mysql
+  tag: "8.4"
+  pullPolicy: IfNotPresent
+
+auth:
+  rootPassword: password
+
+service:
+  type: NodePort
+  port: 3306
+  nodePort: 30306
+
+persistence:
+  size: 10Gi
+  storageClassName: ""
+
+databases:
+  - user_service
+  - auth_service
+
+resources: {}

@@ -10,6 +10,7 @@ import (
 
 type RouterParams struct {
 	ServiceName string
+	BuyerHandler *BuyerHandler
 }
 
 func NewRouter(params RouterParams) *gin.Engine {
@@ -32,6 +33,10 @@ func NewRouter(params RouterParams) *gin.Engine {
 	router.GET("/readyz", func(c *gin.Context) {
 		c.JSON(http.StatusOK, gin.H{"status": "ready"})
 	})
+
+	if params.BuyerHandler != nil {
+		params.BuyerHandler.RegisterRoutes(router)
+	}
 
 	return router
 }
