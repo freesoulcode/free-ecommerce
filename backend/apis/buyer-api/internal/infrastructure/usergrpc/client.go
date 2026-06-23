@@ -84,6 +84,74 @@ func (c *Client) GetUser(ctx context.Context, id int64) (*applicationbuyer.Buyer
 	}, nil
 }
 
+func (c *Client) CreateAddress(ctx context.Context, input applicationbuyer.CreateAddressInput) (*applicationbuyer.Address, error) {
+	resp, err := c.client.CreateAddress(ctx, &userv1.CreateAddressRequest{
+		UserId:        input.UserID,
+		ReceiverName:  input.ReceiverName,
+		ReceiverPhone: input.ReceiverPhone,
+		CountryCode:   input.CountryCode,
+		Province:      input.Province,
+		City:          input.City,
+		District:      input.District,
+		AddressLine1:  input.AddressLine1,
+		AddressLine2:  input.AddressLine2,
+		PostalCode:    input.PostalCode,
+		Tag:           input.Tag,
+		IsDefault:     input.IsDefault,
+	})
+	if err != nil {
+		return nil, toAppError(err)
+	}
+
+	return toAppAddress(resp.GetAddress()), nil
+}
+
+func (c *Client) UpdateAddress(ctx context.Context, input applicationbuyer.UpdateAddressInput) (*applicationbuyer.Address, error) {
+	resp, err := c.client.UpdateAddress(ctx, &userv1.UpdateAddressRequest{
+		Id:            input.ID,
+		UserId:        input.UserID,
+		ReceiverName:  input.ReceiverName,
+		ReceiverPhone: input.ReceiverPhone,
+		CountryCode:   input.CountryCode,
+		Province:      input.Province,
+		City:          input.City,
+		District:      input.District,
+		AddressLine1:  input.AddressLine1,
+		AddressLine2:  input.AddressLine2,
+		PostalCode:    input.PostalCode,
+		Tag:           input.Tag,
+		IsDefault:     input.IsDefault,
+	})
+	if err != nil {
+		return nil, toAppError(err)
+	}
+
+	return toAppAddress(resp.GetAddress()), nil
+}
+
+func (c *Client) DeleteAddress(ctx context.Context, input applicationbuyer.DeleteAddressInput) error {
+	_, err := c.client.DeleteAddress(ctx, &userv1.DeleteAddressRequest{Id: input.ID, UserId: input.UserID})
+	if err != nil {
+		return toAppError(err)
+	}
+
+	return nil
+}
+
+func (c *Client) ListAddresses(ctx context.Context, userID int64) ([]*applicationbuyer.Address, error) {
+	resp, err := c.client.ListAddresses(ctx, &userv1.ListAddressesRequest{UserId: userID})
+	if err != nil {
+		return nil, toAppError(err)
+	}
+
+	addresses := make([]*applicationbuyer.Address, 0, len(resp.GetAddresses()))
+	for _, address := range resp.GetAddresses() {
+		addresses = append(addresses, toAppAddress(address))
+	}
+
+	return addresses, nil
+}
+
 func toAppError(err error) error {
 	st, ok := status.FromError(err)
 	if !ok {

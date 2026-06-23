@@ -1,0 +1,20 @@
+CREATE TABLE IF NOT EXISTS user_addresses (
+    id BIGINT NOT NULL PRIMARY KEY,
+    user_id BIGINT NOT NULL,
+    receiver_name VARCHAR(64) NOT NULL,
+    receiver_phone VARCHAR(32) NOT NULL,
+    country_code VARCHAR(16) NOT NULL,
+    province VARCHAR(64) NOT NULL,
+    city VARCHAR(64) NOT NULL,
+    district VARCHAR(64) NOT NULL,
+    address_line1 VARCHAR(255) NOT NULL,
+    address_line2 VARCHAR(255) NULL,
+    postal_code VARCHAR(32) NULL,
+    tag VARCHAR(32) NULL,
+    is_default BOOLEAN NOT NULL DEFAULT FALSE,
+    created_at DATETIME(3) NOT NULL,
+    updated_at DATETIME(3) NOT NULL,
+    KEY idx_user_addresses_user_id (user_id),
+    KEY idx_user_addresses_user_default (user_id, is_default),
+    CONSTRAINT fk_user_addresses_user_id FOREIGN KEY (user_id) REFERENCES users (id)
+);

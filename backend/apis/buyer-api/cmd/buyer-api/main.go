@@ -41,7 +41,8 @@ func main() {
 
 	registerBuyerService := applicationbuyer.NewRegisterBuyerService(userServiceClient, authServiceClient)
 	loginBuyerService := applicationbuyer.NewLoginBuyerService(authServiceClient, userServiceClient)
-	buyerHandler := servicehttp.NewBuyerHandler(registerBuyerService, loginBuyerService)
+	addressBuyerService := applicationbuyer.NewAddressBuyerService(userServiceClient)
+	buyerHandler := servicehttp.NewBuyerHandler(registerBuyerService, loginBuyerService, addressBuyerService)
 
 	router := servicehttp.NewRouter(servicehttp.RouterParams{
 		ServiceName:  cfg.ServiceName,
