@@ -15,10 +15,11 @@ type UserServiceServer struct {
 	userv1.UnimplementedUserServiceServer
 
 	createUserService *applicationuser.CreateUserService
+	deleteUserService *applicationuser.DeleteUserService
 }
 
-func NewUserServiceServer(createUserService *applicationuser.CreateUserService) *UserServiceServer {
-	return &UserServiceServer{createUserService: createUserService}
+func NewUserServiceServer(createUserService *applicationuser.CreateUserService, deleteUserService *applicationuser.DeleteUserService) *UserServiceServer {
+	return &UserServiceServer{createUserService: createUserService, deleteUserService: deleteUserService}
 }
 
 func (s *UserServiceServer) CreateUser(ctx context.Context, req *userv1.CreateUserRequest) (*userv1.CreateUserResponse, error) {
@@ -44,6 +45,18 @@ func (s *UserServiceServer) CreateUser(ctx context.Context, req *userv1.CreateUs
 		EmailVerified: user.EmailVerified,
 		PhoneVerified: user.PhoneVerified,
 	}, nil
+}
+
+func (s *UserServiceServer) DeleteUser(ctx context.Context, req *userv1.DeleteUserRequest) (*userv1.DeleteUserResponse, error) {
+	if req == nil {
+		return nil, status.Error(codes.InvalidArgument, "request is required")
+	}
+
+	if err := s.deleteUserService.Execute(ctx, req.GetId()); err != nil {
+		return nil, toGRPCError(err)
+	}
+
+	return &userv1.DeleteUserResponse{}, nil
 }
 
 func toGRPCError(err error) error {

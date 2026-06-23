@@ -58,6 +58,15 @@ func (c *Client) CreateUser(ctx context.Context, input applicationbuyer.CreateBu
 	}, nil
 }
 
+func (c *Client) DeleteUser(ctx context.Context, id int64) error {
+	_, err := c.client.DeleteUser(ctx, &userv1.DeleteUserRequest{Id: id})
+	if err != nil {
+		return toAppError(err)
+	}
+
+	return nil
+}
+
 func toAppError(err error) error {
 	st, ok := status.FromError(err)
 	if !ok {

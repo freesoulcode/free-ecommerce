@@ -25,6 +25,10 @@ type CreateUserService struct {
 	now         func() time.Time
 }
 
+type DeleteUserService struct {
+	repo domainuser.Repository
+}
+
 func NewCreateUserService(repo domainuser.Repository, idGenerator IDGenerator, now func() time.Time) *CreateUserService {
 	if now == nil {
 		now = time.Now
@@ -35,6 +39,10 @@ func NewCreateUserService(repo domainuser.Repository, idGenerator IDGenerator, n
 		idGenerator: idGenerator,
 		now:         now,
 	}
+}
+
+func NewDeleteUserService(repo domainuser.Repository) *DeleteUserService {
+	return &DeleteUserService{repo: repo}
 }
 
 func (s *CreateUserService) Execute(ctx context.Context, input CreateUserInput) (*domainuser.User, error) {
@@ -76,4 +84,16 @@ func (s *CreateUserService) Execute(ctx context.Context, input CreateUserInput) 
 	}
 
 	return user, nil
+}
+
+func (s *DeleteUserService) Execute(ctx context.Context, id int64) error {
+	if id <= 0 {
+		return appErrors.InvalidArgument("user id is required")
+	}
+
+	if err := s.repo.DeleteByID(ctx, id); err != nil {
+		return err
+	}
+
+	return nil
 }

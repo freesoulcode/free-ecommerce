@@ -6,6 +6,7 @@ option go_package = "github.com/freesoulcode/free-ecommerce/gen/go/proto/user/v1
 
 service UserService {
   rpc CreateUser(CreateUserRequest) returns (CreateUserResponse);
+  rpc DeleteUser(DeleteUserRequest) returns (DeleteUserResponse);
 }
 
 message CreateUserRequest {
@@ -23,3 +24,9 @@ message CreateUserResponse {
   bool email_verified = 6;
   bool phone_verified = 7;
 }
+
+message DeleteUserRequest {
+  int64 id = 1;
+}
+
+message DeleteUserResponse {}

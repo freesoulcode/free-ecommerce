@@ -21,6 +21,7 @@ type registerBuyerRequest struct {
 	Email    string `json:"email"`
 	Phone    string `json:"phone"`
 	Nickname string `json:"nickname" binding:"required"`
+	Password string `json:"password" binding:"required"`
 }
 
 func (h *BuyerHandler) RegisterRoutes(router *gin.Engine) {
@@ -38,6 +39,7 @@ func (h *BuyerHandler) register(c *gin.Context) {
 		Email:    req.Email,
 		Phone:    req.Phone,
 		Nickname: req.Nickname,
+		Password: req.Password,
 	})
 	if err != nil {
 		httpx.Error(c, err)

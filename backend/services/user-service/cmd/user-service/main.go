@@ -45,7 +45,8 @@ func main() {
 
 	userRepo := servicepersistence.NewUserRepository(db)
 	createUserService := applicationuser.NewCreateUserService(userRepo, idGenerator, nil)
-	userGRPCServer := servicegrpc.NewUserServiceServer(createUserService)
+	deleteUserService := applicationuser.NewDeleteUserService(userRepo)
+	userGRPCServer := servicegrpc.NewUserServiceServer(createUserService, deleteUserService)
 
 	grpcListener, err := net.Listen("tcp", cfg.GRPCAddr)
 	if err != nil {

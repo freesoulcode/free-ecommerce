@@ -15,9 +15,14 @@ type Config struct {
 	HTTPAddr    string
 	LogLevel    string
 	UserService UserServiceConfig
+	AuthService AuthServiceConfig
 }
 
 type UserServiceConfig struct {
+	GRPCAddr string
+}
+
+type AuthServiceConfig struct {
 	GRPCAddr string
 }
 
@@ -29,6 +34,9 @@ func Load() Config {
 		LogLevel:    getEnv("BUYER_API_LOG_LEVEL", defaultLogLevel),
 		UserService: UserServiceConfig{
 			GRPCAddr: getEnv("BUYER_API_USER_SERVICE_GRPC_ADDR", "127.0.0.1:9082"),
+		},
+		AuthService: AuthServiceConfig{
+			GRPCAddr: getEnv("BUYER_API_AUTH_SERVICE_GRPC_ADDR", "127.0.0.1:9081"),
 		},
 	}
 }

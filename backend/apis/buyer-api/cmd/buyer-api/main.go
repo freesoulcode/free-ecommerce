@@ -4,6 +4,7 @@ import (
 	"log"
 
 	applicationbuyer "github.com/freesoulcode/free-ecommerce/backend/apis/buyer-api/internal/application/buyer"
+	serviceauthgrpc "github.com/freesoulcode/free-ecommerce/backend/apis/buyer-api/internal/infrastructure/authgrpc"
 	sharedlogger "github.com/freesoulcode/free-ecommerce/backend/pkg/logger"
 	servicehttp "github.com/freesoulcode/free-ecommerce/backend/apis/buyer-api/internal/handler/http"
 	serviceconfig "github.com/freesoulcode/free-ecommerce/backend/apis/buyer-api/internal/infrastructure/config"
@@ -30,7 +31,15 @@ func main() {
 		_ = userServiceClient.Close()
 	}()
 
-	registerBuyerService := applicationbuyer.NewRegisterBuyerService(userServiceClient)
+	authServiceClient, err := serviceauthgrpc.New(cfg.AuthService.GRPCAddr)
+	if err != nil {
+		logger.Fatal("init auth service grpc client", zap.Error(err))
+	}
+	defer func() {
+		_ = authServiceClient.Close()
+	}()
+
+	registerBuyerService := applicationbuyer.NewRegisterBuyerService(userServiceClient, authServiceClient)
 	buyerHandler := servicehttp.NewBuyerHandler(registerBuyerService)
 
 	router := servicehttp.NewRouter(servicehttp.RouterParams{
@@ -41,6 +50,7 @@ func main() {
 		zap.String("addr", cfg.HTTPAddr),
 		zap.String("service", cfg.ServiceName),
 		zap.String("user_service_grpc_addr", cfg.UserService.GRPCAddr),
+		zap.String("auth_service_grpc_addr", cfg.AuthService.GRPCAddr),
 	)
 
 	if err := router.Run(cfg.HTTPAddr); err != nil {

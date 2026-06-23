@@ -1,14 +1,15 @@
 GOPATH_BIN := $(shell go env GOPATH)/bin
 PROTOC := PATH="$(GOPATH_BIN):$$PATH" protoc --proto_path=.
 
-.PHONY: help proto proto-user proto-auth test test-user-service test-buyer-api mysql-up mysql-status mysql-down run-user-service run-buyer-api run-auth-service
+.PHONY: help proto proto-user proto-auth test test-user-service test-auth-service test-buyer-api mysql-up mysql-status mysql-down run-user-service run-buyer-api run-auth-service
 
 help:
 	@printf "%-24s %s\n" "proto" "Generate all Go/gRPC proto code"
 	@printf "%-24s %s\n" "proto-user" "Generate user proto Go/gRPC code"
 	@printf "%-24s %s\n" "proto-auth" "Generate auth proto Go/gRPC code"
-	@printf "%-24s %s\n" "test" "Run buyer-api, user-service and generated code tests"
+	@printf "%-24s %s\n" "test" "Run auth-service, buyer-api, user-service and generated code tests"
 	@printf "%-24s %s\n" "test-user-service" "Run user-service package tests"
+	@printf "%-24s %s\n" "test-auth-service" "Run auth-service package tests"
 	@printf "%-24s %s\n" "test-buyer-api" "Run buyer-api package tests"
 	@printf "%-24s %s\n" "mysql-up" "Install or upgrade local MySQL Helm release"
 	@printf "%-24s %s\n" "mysql-status" "Show local MySQL service status"
@@ -34,10 +35,13 @@ proto-auth:
 		./proto/auth/v1/auth.proto
 
 test:
-	@go test ./backend/services/user-service/... ./backend/apis/buyer-api/... ./gen/go/proto/...
+	@go test ./backend/services/user-service/... ./backend/services/auth-service/... ./backend/apis/buyer-api/... ./gen/go/proto/...
 
 test-user-service:
 	@go test ./backend/services/user-service/...
+
+test-auth-service:
+	@go test ./backend/services/auth-service/...
 
 test-buyer-api:
 	@go test ./backend/apis/buyer-api/...
@@ -55,7 +59,7 @@ run-user-service:
 	@USER_SERVICE_HTTP_ADDR=127.0.0.1:18082 USER_SERVICE_GRPC_ADDR=127.0.0.1:19082 go run ./backend/services/user-service/cmd/user-service
 
 run-buyer-api:
-	@BUYER_API_HTTP_ADDR=127.0.0.1:18080 BUYER_API_USER_SERVICE_GRPC_ADDR=127.0.0.1:19082 go run ./backend/apis/buyer-api/cmd/buyer-api
+	@BUYER_API_HTTP_ADDR=127.0.0.1:18080 BUYER_API_USER_SERVICE_GRPC_ADDR=127.0.0.1:19082 BUYER_API_AUTH_SERVICE_GRPC_ADDR=127.0.0.1:19081 go run ./backend/apis/buyer-api/cmd/buyer-api
 
 run-auth-service:
-	@AUTH_SERVICE_HTTP_ADDR=127.0.0.1:18081 go run ./backend/services/auth-service/cmd/auth-service
+	@AUTH_SERVICE_HTTP_ADDR=127.0.0.1:18081 AUTH_SERVICE_GRPC_ADDR=127.0.0.1:19081 go run ./backend/services/auth-service/cmd/auth-service

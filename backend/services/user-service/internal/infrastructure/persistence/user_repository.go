@@ -59,6 +59,18 @@ func (r *UserRepository) Create(ctx context.Context, user *domainuser.User) erro
 	return nil
 }
 
+func (r *UserRepository) DeleteByID(ctx context.Context, id int64) error {
+	result := r.db.WithContext(ctx).Delete(&UserModel{}, "id = ?", id)
+	if result.Error != nil {
+		return fmt.Errorf("delete user by id: %w", result.Error)
+	}
+	if result.RowsAffected == 0 {
+		return appErrors.NotFound("user not found")
+	}
+
+	return nil
+}
+
 func (r *UserRepository) ExistsByEmail(ctx context.Context, email string) (bool, error) {
 	if strings.TrimSpace(email) == "" {
 		return false, nil
