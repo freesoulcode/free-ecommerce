@@ -1,0 +1,71 @@
+syntax = "proto3";
+
+package product.v1;
+
+option go_package = "github.com/freesoulcode/free-ecommerce/gen/go/proto/product/v1;productv1";
+
+service ProductService {
+  rpc ListPublicProducts(ListPublicProductsRequest) returns (ListPublicProductsResponse);
+  rpc GetPublicProduct(GetPublicProductRequest) returns (GetPublicProductResponse);
+}
+
+message ProductSummary {
+  int64 id = 1;
+  int64 shop_id = 2;
+  string shop_name = 3;
+  string title = 4;
+  string sub_title = 5;
+  string main_image_url = 6;
+  int64 min_price_amount = 7;
+  int64 max_price_amount = 8;
+  string currency = 9;
+  int32 total_stock = 10;
+}
+
+message ProductSku {
+  int64 id = 1;
+  string name = 2;
+  int64 price_amount = 3;
+  string currency = 4;
+  int32 stock = 5;
+  string sale_status = 6;
+}
+
+message ProductDetail {
+  int64 id = 1;
+  int64 shop_id = 2;
+  string shop_name = 3;
+  string title = 4;
+  string sub_title = 5;
+  string main_image_url = 6;
+  string description = 7;
+  string review_status = 8;
+  string sale_status = 9;
+  int64 min_price_amount = 10;
+  int64 max_price_amount = 11;
+  string currency = 12;
+  int32 total_stock = 13;
+  repeated ProductSku skus = 14;
+}
+
+message ListPublicProductsRequest {
+  int32 page = 1;
+  int32 page_size = 2;
+  string keyword = 3;
+  int64 shop_id = 4;
+}
+
+message ListPublicProductsResponse {
+  repeated ProductSummary products = 1;
+  int64 total = 2;
+  int32 page = 3;
+  int32 page_size = 4;
+}
+
+message GetPublicProductRequest {
+  int64 id = 1;
+}
+
+message GetPublicProductResponse {
+  ProductDetail product = 1;
+}

@@ -9,8 +9,9 @@ import (
 )
 
 type RouterParams struct {
-	ServiceName string
-	BuyerHandler *BuyerHandler
+	ServiceName    string
+	BuyerHandler   *BuyerHandler
+	ProductHandler *ProductHandler
 }
 
 func NewRouter(params RouterParams) *gin.Engine {
@@ -36,6 +37,9 @@ func NewRouter(params RouterParams) *gin.Engine {
 
 	if params.BuyerHandler != nil {
 		params.BuyerHandler.RegisterRoutes(router)
+	}
+	if params.ProductHandler != nil {
+		params.ProductHandler.RegisterRoutes(router)
 	}
 
 	return router

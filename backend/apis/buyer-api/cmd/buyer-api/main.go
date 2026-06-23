@@ -7,6 +7,7 @@ import (
 	servicehttp "github.com/freesoulcode/free-ecommerce/backend/apis/buyer-api/internal/handler/http"
 	serviceauthgrpc "github.com/freesoulcode/free-ecommerce/backend/apis/buyer-api/internal/infrastructure/authgrpc"
 	serviceconfig "github.com/freesoulcode/free-ecommerce/backend/apis/buyer-api/internal/infrastructure/config"
+	serviceproductgrpc "github.com/freesoulcode/free-ecommerce/backend/apis/buyer-api/internal/infrastructure/productgrpc"
 	serviceusergrpc "github.com/freesoulcode/free-ecommerce/backend/apis/buyer-api/internal/infrastructure/usergrpc"
 	sharedlogger "github.com/freesoulcode/free-ecommerce/backend/pkg/logger"
 	"go.uber.org/zap"
@@ -39,20 +40,32 @@ func main() {
 		_ = authServiceClient.Close()
 	}()
 
+	productServiceClient, err := serviceproductgrpc.New(cfg.ProductService.GRPCAddr)
+	if err != nil {
+		logger.Fatal("init product service grpc client", zap.Error(err))
+	}
+	defer func() {
+		_ = productServiceClient.Close()
+	}()
+
 	registerBuyerService := applicationbuyer.NewRegisterBuyerService(userServiceClient, authServiceClient)
 	loginBuyerService := applicationbuyer.NewLoginBuyerService(authServiceClient, userServiceClient)
 	addressBuyerService := applicationbuyer.NewAddressBuyerService(userServiceClient)
 	buyerHandler := servicehttp.NewBuyerHandler(registerBuyerService, loginBuyerService, addressBuyerService)
+	productBrowseService := applicationbuyer.NewProductBrowseService(productServiceClient)
+	productHandler := servicehttp.NewProductHandler(productBrowseService)
 
 	router := servicehttp.NewRouter(servicehttp.RouterParams{
-		ServiceName:  cfg.ServiceName,
-		BuyerHandler: buyerHandler,
+		ServiceName:    cfg.ServiceName,
+		BuyerHandler:   buyerHandler,
+		ProductHandler: productHandler,
 	})
 	logger.Info("starting http server",
 		zap.String("addr", cfg.HTTPAddr),
 		zap.String("service", cfg.ServiceName),
 		zap.String("user_service_grpc_addr", cfg.UserService.GRPCAddr),
 		zap.String("auth_service_grpc_addr", cfg.AuthService.GRPCAddr),
+		zap.String("product_service_grpc_addr", cfg.ProductService.GRPCAddr),
 	)
 
 	if err := router.Run(cfg.HTTPAddr); err != nil {

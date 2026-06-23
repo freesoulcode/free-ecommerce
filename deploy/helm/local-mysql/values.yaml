@@ -21,5 +21,6 @@ persistence:
 databases:
   - user_service
   - auth_service
+  - product_service
 
 resources: {}
