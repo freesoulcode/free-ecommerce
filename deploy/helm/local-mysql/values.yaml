@@ -24,5 +24,6 @@ databases:
   - product_service
   - cart_service
   - order_service
+  - payment_service
 
 resources: {}

@@ -13,18 +13,20 @@ import (
 )
 
 type OrderGroupModel struct {
-	ID                  int64     `gorm:"column:id;primaryKey"`
-	UserID              int64     `gorm:"column:user_id"`
-	Status              string    `gorm:"column:status"`
-	Source              string    `gorm:"column:source"`
-	TotalItemAmount     int64     `gorm:"column:total_item_amount"`
-	TotalShippingAmount int64     `gorm:"column:total_shipping_amount"`
-	TotalPayAmount      int64     `gorm:"column:total_pay_amount"`
-	Currency            string    `gorm:"column:currency"`
-	ShopOrderCount      int32     `gorm:"column:shop_order_count"`
-	ItemCount           int32     `gorm:"column:item_count"`
-	CreatedAt           time.Time `gorm:"column:created_at"`
-	UpdatedAt           time.Time `gorm:"column:updated_at"`
+	ID                  int64      `gorm:"column:id;primaryKey"`
+	UserID              int64      `gorm:"column:user_id"`
+	Status              string     `gorm:"column:status"`
+	Source              string     `gorm:"column:source"`
+	TotalItemAmount     int64      `gorm:"column:total_item_amount"`
+	TotalShippingAmount int64      `gorm:"column:total_shipping_amount"`
+	TotalPayAmount      int64      `gorm:"column:total_pay_amount"`
+	Currency            string     `gorm:"column:currency"`
+	ShopOrderCount      int32      `gorm:"column:shop_order_count"`
+	ItemCount           int32      `gorm:"column:item_count"`
+	PaymentDeadlineAt   time.Time  `gorm:"column:payment_deadline_at"`
+	PaidAt              *time.Time `gorm:"column:paid_at"`
+	CreatedAt           time.Time  `gorm:"column:created_at"`
+	UpdatedAt           time.Time  `gorm:"column:updated_at"`
 }
 
 func (OrderGroupModel) TableName() string { return "order_groups" }
@@ -50,19 +52,20 @@ type OrderGroupAddressModel struct {
 func (OrderGroupAddressModel) TableName() string { return "order_group_addresses" }
 
 type ShopOrderModel struct {
-	ID             int64     `gorm:"column:id;primaryKey"`
-	OrderGroupID   int64     `gorm:"column:order_group_id"`
-	UserID         int64     `gorm:"column:user_id"`
-	ShopID         int64     `gorm:"column:shop_id"`
-	ShopName       string    `gorm:"column:shop_name"`
-	Status         string    `gorm:"column:status"`
-	ItemAmount     int64     `gorm:"column:item_amount"`
-	ShippingAmount int64     `gorm:"column:shipping_amount"`
-	PayAmount      int64     `gorm:"column:pay_amount"`
-	Currency       string    `gorm:"column:currency"`
-	ItemCount      int32     `gorm:"column:item_count"`
-	CreatedAt      time.Time `gorm:"column:created_at"`
-	UpdatedAt      time.Time `gorm:"column:updated_at"`
+	ID             int64      `gorm:"column:id;primaryKey"`
+	OrderGroupID   int64      `gorm:"column:order_group_id"`
+	UserID         int64      `gorm:"column:user_id"`
+	ShopID         int64      `gorm:"column:shop_id"`
+	ShopName       string     `gorm:"column:shop_name"`
+	Status         string     `gorm:"column:status"`
+	ItemAmount     int64      `gorm:"column:item_amount"`
+	ShippingAmount int64      `gorm:"column:shipping_amount"`
+	PayAmount      int64      `gorm:"column:pay_amount"`
+	Currency       string     `gorm:"column:currency"`
+	ItemCount      int32      `gorm:"column:item_count"`
+	PaidAt         *time.Time `gorm:"column:paid_at"`
+	CreatedAt      time.Time  `gorm:"column:created_at"`
+	UpdatedAt      time.Time  `gorm:"column:updated_at"`
 }
 
 func (ShopOrderModel) TableName() string { return "shop_orders" }
@@ -169,6 +172,8 @@ func (r *OrderRepository) ListBuyerOrderGroups(ctx context.Context, query domain
 			Currency:            model.Currency,
 			ShopOrderCount:      model.ShopOrderCount,
 			ItemCount:           model.ItemCount,
+			PaymentDeadlineAt:   model.PaymentDeadlineAt,
+			PaidAt:              model.PaidAt,
 			ShopOrders:          shopOrdersByGroup[model.ID],
 			CreatedAt:           model.CreatedAt,
 			UpdatedAt:           model.UpdatedAt,
@@ -198,6 +203,8 @@ func (r *OrderRepository) GetBuyerOrderGroupDetail(ctx context.Context, userID, 
 		Currency:            groupModel.Currency,
 		ShopOrderCount:      groupModel.ShopOrderCount,
 		ItemCount:           groupModel.ItemCount,
+		PaymentDeadlineAt:   groupModel.PaymentDeadlineAt,
+		PaidAt:              groupModel.PaidAt,
 		CreatedAt:           groupModel.CreatedAt,
 		UpdatedAt:           groupModel.UpdatedAt,
 	}
@@ -237,6 +244,7 @@ func (r *OrderRepository) GetBuyerOrderGroupDetail(ctx context.Context, userID, 
 			Currency:       model.Currency,
 			ItemCount:      model.ItemCount,
 			Items:          itemsByShopOrder[model.ID],
+			PaidAt:         model.PaidAt,
 			CreatedAt:      model.CreatedAt,
 			UpdatedAt:      model.UpdatedAt,
 		}
@@ -244,6 +252,123 @@ func (r *OrderRepository) GetBuyerOrderGroupDetail(ctx context.Context, userID, 
 	}
 
 	return group, nil
+}
+
+func (r *OrderRepository) GetOrderGroupPaymentInfo(ctx context.Context, userID, orderGroupID int64) (*domainorder.PaymentInfo, error) {
+	groupModel, err := r.getOrderGroupModel(ctx, userID, orderGroupID)
+	if err != nil {
+		return nil, err
+	}
+	info := toPaymentInfo(groupModel)
+	return &info, nil
+}
+
+func (r *OrderRepository) MarkOrderGroupPaid(ctx context.Context, userID, orderGroupID int64, paidAt time.Time) (*domainorder.PaymentInfo, error) {
+	var result *domainorder.PaymentInfo
+	err := r.db.WithContext(ctx).Transaction(func(tx *gorm.DB) error {
+		groupModel, err := r.getOrderGroupModelForUpdate(tx, userID, orderGroupID)
+		if err != nil {
+			return err
+		}
+
+		switch groupModel.Status {
+		case domainorder.StatusPaid:
+			info := toPaymentInfo(groupModel)
+			result = &info
+			return nil
+		case domainorder.StatusPendingPayment:
+			if !groupModel.PaymentDeadlineAt.IsZero() && paidAt.After(groupModel.PaymentDeadlineAt) {
+				return appErrors.InvalidArgument("order group payment deadline has expired")
+			}
+		default:
+			return appErrors.InvalidArgument("order group status does not allow payment")
+		}
+
+		updates := map[string]any{
+			"status":     domainorder.StatusPaid,
+			"paid_at":    paidAt,
+			"updated_at": paidAt,
+		}
+		if err := tx.Model(&OrderGroupModel{}).Where("id = ? AND user_id = ?", orderGroupID, userID).Updates(updates).Error; err != nil {
+			return fmt.Errorf("mark order group paid: %w", err)
+		}
+		if err := tx.Model(&ShopOrderModel{}).Where("order_group_id = ?", orderGroupID).Updates(map[string]any{"status": domainorder.StatusPaid, "paid_at": paidAt, "updated_at": paidAt}).Error; err != nil {
+			return fmt.Errorf("mark shop orders paid: %w", err)
+		}
+
+		groupModel.Status = domainorder.StatusPaid
+		groupModel.PaidAt = &paidAt
+		groupModel.UpdatedAt = paidAt
+		info := toPaymentInfo(groupModel)
+		result = &info
+		return nil
+	})
+	if err != nil {
+		return nil, err
+	}
+	return result, nil
+}
+
+func (r *OrderRepository) CloseOrderGroupByPaymentTimeout(ctx context.Context, userID, orderGroupID int64, closedAt time.Time) (*domainorder.PaymentInfo, error) {
+	var result *domainorder.PaymentInfo
+	err := r.db.WithContext(ctx).Transaction(func(tx *gorm.DB) error {
+		groupModel, err := r.getOrderGroupModelForUpdate(tx, userID, orderGroupID)
+		if err != nil {
+			return err
+		}
+
+		switch groupModel.Status {
+		case domainorder.StatusClosed, domainorder.StatusPaid:
+			info := toPaymentInfo(groupModel)
+			result = &info
+			return nil
+		case domainorder.StatusPendingPayment:
+			if !groupModel.PaymentDeadlineAt.IsZero() && closedAt.Before(groupModel.PaymentDeadlineAt) {
+				return appErrors.InvalidArgument("order group payment is not expired yet")
+			}
+		default:
+			return appErrors.InvalidArgument("order group status does not allow close by payment timeout")
+		}
+
+		if err := tx.Model(&OrderGroupModel{}).Where("id = ? AND user_id = ?", orderGroupID, userID).Updates(map[string]any{"status": domainorder.StatusClosed, "updated_at": closedAt}).Error; err != nil {
+			return fmt.Errorf("close order group by payment timeout: %w", err)
+		}
+		if err := tx.Model(&ShopOrderModel{}).Where("order_group_id = ?", orderGroupID).Updates(map[string]any{"status": domainorder.StatusClosed, "updated_at": closedAt}).Error; err != nil {
+			return fmt.Errorf("close shop orders by payment timeout: %w", err)
+		}
+
+		groupModel.Status = domainorder.StatusClosed
+		groupModel.UpdatedAt = closedAt
+		info := toPaymentInfo(groupModel)
+		result = &info
+		return nil
+	})
+	if err != nil {
+		return nil, err
+	}
+	return result, nil
+}
+
+func (r *OrderRepository) getOrderGroupModel(ctx context.Context, userID, orderGroupID int64) (OrderGroupModel, error) {
+	var groupModel OrderGroupModel
+	if err := r.db.WithContext(ctx).Where("id = ? AND user_id = ?", orderGroupID, userID).First(&groupModel).Error; err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return OrderGroupModel{}, appErrors.NotFound("order group not found")
+		}
+		return OrderGroupModel{}, fmt.Errorf("find order group: %w", err)
+	}
+	return groupModel, nil
+}
+
+func (r *OrderRepository) getOrderGroupModelForUpdate(tx *gorm.DB, userID, orderGroupID int64) (OrderGroupModel, error) {
+	var groupModel OrderGroupModel
+	if err := tx.Where("id = ? AND user_id = ?", orderGroupID, userID).Take(&groupModel).Error; err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return OrderGroupModel{}, appErrors.NotFound("order group not found")
+		}
+		return OrderGroupModel{}, fmt.Errorf("find order group for update: %w", err)
+	}
+	return groupModel, nil
 }
 
 func nullableString(value string) *string {
@@ -262,7 +387,7 @@ func derefString(value *string) string {
 }
 
 func toOrderGroupModel(group *domainorder.Group) OrderGroupModel {
-	return OrderGroupModel{ID: group.ID, UserID: group.UserID, Status: group.Status, Source: group.Source, TotalItemAmount: group.TotalItemAmount, TotalShippingAmount: group.TotalShippingAmount, TotalPayAmount: group.TotalPayAmount, Currency: group.Currency, ShopOrderCount: group.ShopOrderCount, ItemCount: group.ItemCount, CreatedAt: group.CreatedAt, UpdatedAt: group.UpdatedAt}
+	return OrderGroupModel{ID: group.ID, UserID: group.UserID, Status: group.Status, Source: group.Source, TotalItemAmount: group.TotalItemAmount, TotalShippingAmount: group.TotalShippingAmount, TotalPayAmount: group.TotalPayAmount, Currency: group.Currency, ShopOrderCount: group.ShopOrderCount, ItemCount: group.ItemCount, PaymentDeadlineAt: group.PaymentDeadlineAt, PaidAt: group.PaidAt, CreatedAt: group.CreatedAt, UpdatedAt: group.UpdatedAt}
 }
 
 func toAddressModel(address *domainorder.AddressSnapshot) OrderGroupAddressModel {
@@ -270,7 +395,7 @@ func toAddressModel(address *domainorder.AddressSnapshot) OrderGroupAddressModel
 }
 
 func toShopOrderModel(shopOrder *domainorder.ShopOrder) ShopOrderModel {
-	return ShopOrderModel{ID: shopOrder.ID, OrderGroupID: shopOrder.OrderGroupID, UserID: shopOrder.UserID, ShopID: shopOrder.ShopID, ShopName: shopOrder.ShopName, Status: shopOrder.Status, ItemAmount: shopOrder.ItemAmount, ShippingAmount: shopOrder.ShippingAmount, PayAmount: shopOrder.PayAmount, Currency: shopOrder.Currency, ItemCount: shopOrder.ItemCount, CreatedAt: shopOrder.CreatedAt, UpdatedAt: shopOrder.UpdatedAt}
+	return ShopOrderModel{ID: shopOrder.ID, OrderGroupID: shopOrder.OrderGroupID, UserID: shopOrder.UserID, ShopID: shopOrder.ShopID, ShopName: shopOrder.ShopName, Status: shopOrder.Status, ItemAmount: shopOrder.ItemAmount, ShippingAmount: shopOrder.ShippingAmount, PayAmount: shopOrder.PayAmount, Currency: shopOrder.Currency, ItemCount: shopOrder.ItemCount, PaidAt: shopOrder.PaidAt, CreatedAt: shopOrder.CreatedAt, UpdatedAt: shopOrder.UpdatedAt}
 }
 
 func toOrderItemModel(item *domainorder.Item) OrderItemModel {
@@ -282,9 +407,13 @@ func toAddressSnapshot(model OrderGroupAddressModel) *domainorder.AddressSnapsho
 }
 
 func toShopOrderSummary(model ShopOrderModel) *domainorder.ShopOrderSummary {
-	return &domainorder.ShopOrderSummary{ID: model.ID, OrderGroupID: model.OrderGroupID, UserID: model.UserID, ShopID: model.ShopID, ShopName: model.ShopName, Status: model.Status, ItemAmount: model.ItemAmount, ShippingAmount: model.ShippingAmount, PayAmount: model.PayAmount, Currency: model.Currency, ItemCount: model.ItemCount, CreatedAt: model.CreatedAt, UpdatedAt: model.UpdatedAt}
+	return &domainorder.ShopOrderSummary{ID: model.ID, OrderGroupID: model.OrderGroupID, UserID: model.UserID, ShopID: model.ShopID, ShopName: model.ShopName, Status: model.Status, ItemAmount: model.ItemAmount, ShippingAmount: model.ShippingAmount, PayAmount: model.PayAmount, Currency: model.Currency, ItemCount: model.ItemCount, PaidAt: model.PaidAt, CreatedAt: model.CreatedAt, UpdatedAt: model.UpdatedAt}
 }
 
 func toOrderItem(model OrderItemModel) *domainorder.Item {
 	return &domainorder.Item{ID: model.ID, OrderGroupID: model.OrderGroupID, ShopOrderID: model.ShopOrderID, UserID: model.UserID, ShopID: model.ShopID, ProductID: model.ProductID, SKUID: model.SKUID, ProductTitle: model.ProductTitle, ProductSubTitle: model.ProductSubTitle, MainImageURL: model.MainImageURL, SKUName: model.SKUName, PriceAmount: model.PriceAmount, Currency: model.Currency, Quantity: model.Quantity, ItemAmount: model.ItemAmount, ReviewStatusSnapshot: model.ReviewStatusSnapshot, ProductSaleStatusSnapshot: model.ProductSaleStatusSnapshot, SKUSaleStatusSnapshot: model.SKUSaleStatusSnapshot, CreatedAt: model.CreatedAt, UpdatedAt: model.UpdatedAt}
+}
+
+func toPaymentInfo(model OrderGroupModel) domainorder.PaymentInfo {
+	return domainorder.PaymentInfo{OrderGroupID: model.ID, UserID: model.UserID, Status: model.Status, TotalPayAmount: model.TotalPayAmount, Currency: model.Currency, PaymentDeadlineAt: model.PaymentDeadlineAt, PaidAt: model.PaidAt}
 }

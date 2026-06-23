@@ -18,6 +18,7 @@ type Config struct {
 	HTTPAddr    string
 	GRPCAddr    string
 	LogLevel    string
+	Payment     PaymentConfig
 	MySQL       MySQLConfig
 	Snowflake   SnowflakeConfig
 	UserService UserServiceConfig
@@ -28,6 +29,7 @@ type MySQLConfig struct{ DSN string }
 type SnowflakeConfig struct{ Node int64 }
 type UserServiceConfig struct{ GRPCAddr string }
 type CartServiceConfig struct{ GRPCAddr string }
+type PaymentConfig struct{ TimeoutMinutes int64 }
 
 func Load() Config {
 	return Config{
@@ -36,6 +38,7 @@ func Load() Config {
 		HTTPAddr:    getEnv("ORDER_SERVICE_HTTP_ADDR", defaultHTTPAddr),
 		GRPCAddr:    getEnv("ORDER_SERVICE_GRPC_ADDR", ":9085"),
 		LogLevel:    getEnv("ORDER_SERVICE_LOG_LEVEL", defaultLogLevel),
+		Payment:     PaymentConfig{TimeoutMinutes: getEnvInt64("ORDER_SERVICE_PAYMENT_TIMEOUT_MINUTES", 30)},
 		MySQL: MySQLConfig{
 			DSN: getEnv("ORDER_SERVICE_MYSQL_DSN", "root:password@tcp(127.0.0.1:30306)/order_service?charset=utf8mb4&parseTime=True&loc=Local"),
 		},

@@ -96,7 +96,7 @@ func orderItemResponse(item *applicationbuyer.OrderItem) gin.H {
 }
 
 func shopOrderSummaryResponse(shopOrder *applicationbuyer.ShopOrderSummary) gin.H {
-	return gin.H{"id": shopOrder.ID, "order_group_id": shopOrder.OrderGroupID, "user_id": shopOrder.UserID, "shop_id": shopOrder.ShopID, "shop_name": shopOrder.ShopName, "status": shopOrder.Status, "item_amount": shopOrder.ItemAmount, "shipping_amount": shopOrder.ShippingAmount, "pay_amount": shopOrder.PayAmount, "currency": shopOrder.Currency, "item_count": shopOrder.ItemCount, "created_at": shopOrder.CreatedAt, "updated_at": shopOrder.UpdatedAt}
+	return gin.H{"id": shopOrder.ID, "order_group_id": shopOrder.OrderGroupID, "user_id": shopOrder.UserID, "shop_id": shopOrder.ShopID, "shop_name": shopOrder.ShopName, "status": shopOrder.Status, "item_amount": shopOrder.ItemAmount, "shipping_amount": shopOrder.ShippingAmount, "pay_amount": shopOrder.PayAmount, "currency": shopOrder.Currency, "item_count": shopOrder.ItemCount, "paid_at": shopOrder.PaidAt, "created_at": shopOrder.CreatedAt, "updated_at": shopOrder.UpdatedAt}
 }
 
 func shopOrderResponse(shopOrder *applicationbuyer.ShopOrder) gin.H {
@@ -104,7 +104,7 @@ func shopOrderResponse(shopOrder *applicationbuyer.ShopOrder) gin.H {
 	for _, item := range shopOrder.Items {
 		items = append(items, orderItemResponse(item))
 	}
-	return gin.H{"id": shopOrder.ID, "order_group_id": shopOrder.OrderGroupID, "user_id": shopOrder.UserID, "shop_id": shopOrder.ShopID, "shop_name": shopOrder.ShopName, "status": shopOrder.Status, "item_amount": shopOrder.ItemAmount, "shipping_amount": shopOrder.ShippingAmount, "pay_amount": shopOrder.PayAmount, "currency": shopOrder.Currency, "item_count": shopOrder.ItemCount, "items": items, "created_at": shopOrder.CreatedAt, "updated_at": shopOrder.UpdatedAt}
+	return gin.H{"id": shopOrder.ID, "order_group_id": shopOrder.OrderGroupID, "user_id": shopOrder.UserID, "shop_id": shopOrder.ShopID, "shop_name": shopOrder.ShopName, "status": shopOrder.Status, "item_amount": shopOrder.ItemAmount, "shipping_amount": shopOrder.ShippingAmount, "pay_amount": shopOrder.PayAmount, "currency": shopOrder.Currency, "item_count": shopOrder.ItemCount, "paid_at": shopOrder.PaidAt, "items": items, "created_at": shopOrder.CreatedAt, "updated_at": shopOrder.UpdatedAt}
 }
 
 func orderGroupSummaryResponse(group *applicationbuyer.OrderGroupSummary) gin.H {
@@ -112,7 +112,7 @@ func orderGroupSummaryResponse(group *applicationbuyer.OrderGroupSummary) gin.H 
 	for _, shopOrder := range group.ShopOrders {
 		shopOrders = append(shopOrders, shopOrderSummaryResponse(shopOrder))
 	}
-	return gin.H{"id": group.ID, "user_id": group.UserID, "status": group.Status, "source": group.Source, "total_item_amount": group.TotalItemAmount, "total_shipping_amount": group.TotalShippingAmount, "total_pay_amount": group.TotalPayAmount, "currency": group.Currency, "shop_order_count": group.ShopOrderCount, "item_count": group.ItemCount, "shop_orders": shopOrders, "created_at": group.CreatedAt, "updated_at": group.UpdatedAt}
+	return gin.H{"id": group.ID, "user_id": group.UserID, "status": group.Status, "source": group.Source, "total_item_amount": group.TotalItemAmount, "total_shipping_amount": group.TotalShippingAmount, "total_pay_amount": group.TotalPayAmount, "currency": group.Currency, "shop_order_count": group.ShopOrderCount, "item_count": group.ItemCount, "payment_deadline_at": group.PaymentDeadlineAt, "paid_at": group.PaidAt, "shop_orders": shopOrders, "created_at": group.CreatedAt, "updated_at": group.UpdatedAt}
 }
 
 func orderGroupDetailResponse(group *applicationbuyer.OrderGroupDetail) gin.H {
@@ -120,5 +120,5 @@ func orderGroupDetailResponse(group *applicationbuyer.OrderGroupDetail) gin.H {
 	for _, shopOrder := range group.ShopOrders {
 		shopOrders = append(shopOrders, shopOrderResponse(shopOrder))
 	}
-	return gin.H{"id": group.ID, "user_id": group.UserID, "status": group.Status, "source": group.Source, "total_item_amount": group.TotalItemAmount, "total_shipping_amount": group.TotalShippingAmount, "total_pay_amount": group.TotalPayAmount, "currency": group.Currency, "shop_order_count": group.ShopOrderCount, "item_count": group.ItemCount, "address": orderAddressSnapshotResponse(group.Address), "shop_orders": shopOrders, "created_at": group.CreatedAt, "updated_at": group.UpdatedAt}
+	return gin.H{"id": group.ID, "user_id": group.UserID, "status": group.Status, "source": group.Source, "total_item_amount": group.TotalItemAmount, "total_shipping_amount": group.TotalShippingAmount, "total_pay_amount": group.TotalPayAmount, "currency": group.Currency, "shop_order_count": group.ShopOrderCount, "item_count": group.ItemCount, "payment_deadline_at": group.PaymentDeadlineAt, "paid_at": group.PaidAt, "address": orderAddressSnapshotResponse(group.Address), "shop_orders": shopOrders, "created_at": group.CreatedAt, "updated_at": group.UpdatedAt}
 }

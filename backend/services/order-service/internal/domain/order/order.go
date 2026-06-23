@@ -68,6 +68,7 @@ type ShopOrder struct {
 	Currency       string
 	ItemCount      int32
 	Items          []*Item
+	PaidAt         *time.Time
 	CreatedAt      time.Time
 	UpdatedAt      time.Time
 }
@@ -84,6 +85,7 @@ type ShopOrderSummary struct {
 	PayAmount      int64
 	Currency       string
 	ItemCount      int32
+	PaidAt         *time.Time
 	CreatedAt      time.Time
 	UpdatedAt      time.Time
 }
@@ -99,6 +101,8 @@ type Group struct {
 	Currency            string
 	ShopOrderCount      int32
 	ItemCount           int32
+	PaymentDeadlineAt   time.Time
+	PaidAt              *time.Time
 	Address             *AddressSnapshot
 	ShopOrders          []*ShopOrder
 	CreatedAt           time.Time
@@ -116,7 +120,19 @@ type GroupSummary struct {
 	Currency            string
 	ShopOrderCount      int32
 	ItemCount           int32
+	PaymentDeadlineAt   time.Time
+	PaidAt              *time.Time
 	ShopOrders          []*ShopOrderSummary
 	CreatedAt           time.Time
 	UpdatedAt           time.Time
+}
+
+type PaymentInfo struct {
+	OrderGroupID      int64
+	UserID            int64
+	Status            string
+	TotalPayAmount    int64
+	Currency          string
+	PaymentDeadlineAt time.Time
+	PaidAt            *time.Time
 }

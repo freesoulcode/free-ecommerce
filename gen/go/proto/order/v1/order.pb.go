@@ -388,6 +388,7 @@ type ShopOrderSummary struct {
 	ItemCount      int32                  `protobuf:"varint,11,opt,name=item_count,json=itemCount,proto3" json:"item_count,omitempty"`
 	CreatedAt      int64                  `protobuf:"varint,12,opt,name=created_at,json=createdAt,proto3" json:"created_at,omitempty"`
 	UpdatedAt      int64                  `protobuf:"varint,13,opt,name=updated_at,json=updatedAt,proto3" json:"updated_at,omitempty"`
+	PaidAt         int64                  `protobuf:"varint,14,opt,name=paid_at,json=paidAt,proto3" json:"paid_at,omitempty"`
 	unknownFields  protoimpl.UnknownFields
 	sizeCache      protoimpl.SizeCache
 }
@@ -513,6 +514,13 @@ func (x *ShopOrderSummary) GetUpdatedAt() int64 {
 	return 0
 }
 
+func (x *ShopOrderSummary) GetPaidAt() int64 {
+	if x != nil {
+		return x.PaidAt
+	}
+	return 0
+}
+
 type ShopOrder struct {
 	state          protoimpl.MessageState `protogen:"open.v1"`
 	Id             int64                  `protobuf:"varint,1,opt,name=id,proto3" json:"id,omitempty"`
@@ -529,6 +537,7 @@ type ShopOrder struct {
 	Items          []*OrderItem           `protobuf:"bytes,12,rep,name=items,proto3" json:"items,omitempty"`
 	CreatedAt      int64                  `protobuf:"varint,13,opt,name=created_at,json=createdAt,proto3" json:"created_at,omitempty"`
 	UpdatedAt      int64                  `protobuf:"varint,14,opt,name=updated_at,json=updatedAt,proto3" json:"updated_at,omitempty"`
+	PaidAt         int64                  `protobuf:"varint,15,opt,name=paid_at,json=paidAt,proto3" json:"paid_at,omitempty"`
 	unknownFields  protoimpl.UnknownFields
 	sizeCache      protoimpl.SizeCache
 }
@@ -661,6 +670,13 @@ func (x *ShopOrder) GetUpdatedAt() int64 {
 	return 0
 }
 
+func (x *ShopOrder) GetPaidAt() int64 {
+	if x != nil {
+		return x.PaidAt
+	}
+	return 0
+}
+
 type OrderGroupSummary struct {
 	state               protoimpl.MessageState `protogen:"open.v1"`
 	Id                  int64                  `protobuf:"varint,1,opt,name=id,proto3" json:"id,omitempty"`
@@ -676,6 +692,8 @@ type OrderGroupSummary struct {
 	ShopOrders          []*ShopOrderSummary    `protobuf:"bytes,11,rep,name=shop_orders,json=shopOrders,proto3" json:"shop_orders,omitempty"`
 	CreatedAt           int64                  `protobuf:"varint,12,opt,name=created_at,json=createdAt,proto3" json:"created_at,omitempty"`
 	UpdatedAt           int64                  `protobuf:"varint,13,opt,name=updated_at,json=updatedAt,proto3" json:"updated_at,omitempty"`
+	PaymentDeadlineAt   int64                  `protobuf:"varint,14,opt,name=payment_deadline_at,json=paymentDeadlineAt,proto3" json:"payment_deadline_at,omitempty"`
+	PaidAt              int64                  `protobuf:"varint,15,opt,name=paid_at,json=paidAt,proto3" json:"paid_at,omitempty"`
 	unknownFields       protoimpl.UnknownFields
 	sizeCache           protoimpl.SizeCache
 }
@@ -801,6 +819,20 @@ func (x *OrderGroupSummary) GetUpdatedAt() int64 {
 	return 0
 }
 
+func (x *OrderGroupSummary) GetPaymentDeadlineAt() int64 {
+	if x != nil {
+		return x.PaymentDeadlineAt
+	}
+	return 0
+}
+
+func (x *OrderGroupSummary) GetPaidAt() int64 {
+	if x != nil {
+		return x.PaidAt
+	}
+	return 0
+}
+
 type OrderGroupDetail struct {
 	state               protoimpl.MessageState `protogen:"open.v1"`
 	Id                  int64                  `protobuf:"varint,1,opt,name=id,proto3" json:"id,omitempty"`
@@ -817,6 +849,8 @@ type OrderGroupDetail struct {
 	ShopOrders          []*ShopOrder           `protobuf:"bytes,12,rep,name=shop_orders,json=shopOrders,proto3" json:"shop_orders,omitempty"`
 	CreatedAt           int64                  `protobuf:"varint,13,opt,name=created_at,json=createdAt,proto3" json:"created_at,omitempty"`
 	UpdatedAt           int64                  `protobuf:"varint,14,opt,name=updated_at,json=updatedAt,proto3" json:"updated_at,omitempty"`
+	PaymentDeadlineAt   int64                  `protobuf:"varint,15,opt,name=payment_deadline_at,json=paymentDeadlineAt,proto3" json:"payment_deadline_at,omitempty"`
+	PaidAt              int64                  `protobuf:"varint,16,opt,name=paid_at,json=paidAt,proto3" json:"paid_at,omitempty"`
 	unknownFields       protoimpl.UnknownFields
 	sizeCache           protoimpl.SizeCache
 }
@@ -949,6 +983,112 @@ func (x *OrderGroupDetail) GetUpdatedAt() int64 {
 	return 0
 }
 
+func (x *OrderGroupDetail) GetPaymentDeadlineAt() int64 {
+	if x != nil {
+		return x.PaymentDeadlineAt
+	}
+	return 0
+}
+
+func (x *OrderGroupDetail) GetPaidAt() int64 {
+	if x != nil {
+		return x.PaidAt
+	}
+	return 0
+}
+
+type OrderGroupPaymentInfo struct {
+	state             protoimpl.MessageState `protogen:"open.v1"`
+	OrderGroupId      int64                  `protobuf:"varint,1,opt,name=order_group_id,json=orderGroupId,proto3" json:"order_group_id,omitempty"`
+	UserId            int64                  `protobuf:"varint,2,opt,name=user_id,json=userId,proto3" json:"user_id,omitempty"`
+	Status            string                 `protobuf:"bytes,3,opt,name=status,proto3" json:"status,omitempty"`
+	TotalPayAmount    int64                  `protobuf:"varint,4,opt,name=total_pay_amount,json=totalPayAmount,proto3" json:"total_pay_amount,omitempty"`
+	Currency          string                 `protobuf:"bytes,5,opt,name=currency,proto3" json:"currency,omitempty"`
+	PaymentDeadlineAt int64                  `protobuf:"varint,6,opt,name=payment_deadline_at,json=paymentDeadlineAt,proto3" json:"payment_deadline_at,omitempty"`
+	PaidAt            int64                  `protobuf:"varint,7,opt,name=paid_at,json=paidAt,proto3" json:"paid_at,omitempty"`
+	unknownFields     protoimpl.UnknownFields
+	sizeCache         protoimpl.SizeCache
+}
+
+func (x *OrderGroupPaymentInfo) Reset() {
+	*x = OrderGroupPaymentInfo{}
+	mi := &file_proto_order_v1_order_proto_msgTypes[6]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *OrderGroupPaymentInfo) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*OrderGroupPaymentInfo) ProtoMessage() {}
+
+func (x *OrderGroupPaymentInfo) ProtoReflect() protoreflect.Message {
+	mi := &file_proto_order_v1_order_proto_msgTypes[6]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use OrderGroupPaymentInfo.ProtoReflect.Descriptor instead.
+func (*OrderGroupPaymentInfo) Descriptor() ([]byte, []int) {
+	return file_proto_order_v1_order_proto_rawDescGZIP(), []int{6}
+}
+
+func (x *OrderGroupPaymentInfo) GetOrderGroupId() int64 {
+	if x != nil {
+		return x.OrderGroupId
+	}
+	return 0
+}
+
+func (x *OrderGroupPaymentInfo) GetUserId() int64 {
+	if x != nil {
+		return x.UserId
+	}
+	return 0
+}
+
+func (x *OrderGroupPaymentInfo) GetStatus() string {
+	if x != nil {
+		return x.Status
+	}
+	return ""
+}
+
+func (x *OrderGroupPaymentInfo) GetTotalPayAmount() int64 {
+	if x != nil {
+		return x.TotalPayAmount
+	}
+	return 0
+}
+
+func (x *OrderGroupPaymentInfo) GetCurrency() string {
+	if x != nil {
+		return x.Currency
+	}
+	return ""
+}
+
+func (x *OrderGroupPaymentInfo) GetPaymentDeadlineAt() int64 {
+	if x != nil {
+		return x.PaymentDeadlineAt
+	}
+	return 0
+}
+
+func (x *OrderGroupPaymentInfo) GetPaidAt() int64 {
+	if x != nil {
+		return x.PaidAt
+	}
+	return 0
+}
+
 type SubmitOrderRequest struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	UserId        int64                  `protobuf:"varint,1,opt,name=user_id,json=userId,proto3" json:"user_id,omitempty"`
@@ -961,7 +1101,7 @@ type SubmitOrderRequest struct {
 
 func (x *SubmitOrderRequest) Reset() {
 	*x = SubmitOrderRequest{}
-	mi := &file_proto_order_v1_order_proto_msgTypes[6]
+	mi := &file_proto_order_v1_order_proto_msgTypes[7]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -973,7 +1113,7 @@ func (x *SubmitOrderRequest) String() string {
 func (*SubmitOrderRequest) ProtoMessage() {}
 
 func (x *SubmitOrderRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_order_v1_order_proto_msgTypes[6]
+	mi := &file_proto_order_v1_order_proto_msgTypes[7]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -986,7 +1126,7 @@ func (x *SubmitOrderRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use SubmitOrderRequest.ProtoReflect.Descriptor instead.
 func (*SubmitOrderRequest) Descriptor() ([]byte, []int) {
-	return file_proto_order_v1_order_proto_rawDescGZIP(), []int{6}
+	return file_proto_order_v1_order_proto_rawDescGZIP(), []int{7}
 }
 
 func (x *SubmitOrderRequest) GetUserId() int64 {
@@ -1026,7 +1166,7 @@ type SubmitOrderResponse struct {
 
 func (x *SubmitOrderResponse) Reset() {
 	*x = SubmitOrderResponse{}
-	mi := &file_proto_order_v1_order_proto_msgTypes[7]
+	mi := &file_proto_order_v1_order_proto_msgTypes[8]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1038,7 +1178,7 @@ func (x *SubmitOrderResponse) String() string {
 func (*SubmitOrderResponse) ProtoMessage() {}
 
 func (x *SubmitOrderResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_order_v1_order_proto_msgTypes[7]
+	mi := &file_proto_order_v1_order_proto_msgTypes[8]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1051,7 +1191,7 @@ func (x *SubmitOrderResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use SubmitOrderResponse.ProtoReflect.Descriptor instead.
 func (*SubmitOrderResponse) Descriptor() ([]byte, []int) {
-	return file_proto_order_v1_order_proto_rawDescGZIP(), []int{7}
+	return file_proto_order_v1_order_proto_rawDescGZIP(), []int{8}
 }
 
 func (x *SubmitOrderResponse) GetOrderGroup() *OrderGroupDetail {
@@ -1073,7 +1213,7 @@ type ListBuyerOrderGroupsRequest struct {
 
 func (x *ListBuyerOrderGroupsRequest) Reset() {
 	*x = ListBuyerOrderGroupsRequest{}
-	mi := &file_proto_order_v1_order_proto_msgTypes[8]
+	mi := &file_proto_order_v1_order_proto_msgTypes[9]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1085,7 +1225,7 @@ func (x *ListBuyerOrderGroupsRequest) String() string {
 func (*ListBuyerOrderGroupsRequest) ProtoMessage() {}
 
 func (x *ListBuyerOrderGroupsRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_order_v1_order_proto_msgTypes[8]
+	mi := &file_proto_order_v1_order_proto_msgTypes[9]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1098,7 +1238,7 @@ func (x *ListBuyerOrderGroupsRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListBuyerOrderGroupsRequest.ProtoReflect.Descriptor instead.
 func (*ListBuyerOrderGroupsRequest) Descriptor() ([]byte, []int) {
-	return file_proto_order_v1_order_proto_rawDescGZIP(), []int{8}
+	return file_proto_order_v1_order_proto_rawDescGZIP(), []int{9}
 }
 
 func (x *ListBuyerOrderGroupsRequest) GetUserId() int64 {
@@ -1141,7 +1281,7 @@ type ListBuyerOrderGroupsResponse struct {
 
 func (x *ListBuyerOrderGroupsResponse) Reset() {
 	*x = ListBuyerOrderGroupsResponse{}
-	mi := &file_proto_order_v1_order_proto_msgTypes[9]
+	mi := &file_proto_order_v1_order_proto_msgTypes[10]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1153,7 +1293,7 @@ func (x *ListBuyerOrderGroupsResponse) String() string {
 func (*ListBuyerOrderGroupsResponse) ProtoMessage() {}
 
 func (x *ListBuyerOrderGroupsResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_order_v1_order_proto_msgTypes[9]
+	mi := &file_proto_order_v1_order_proto_msgTypes[10]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1166,7 +1306,7 @@ func (x *ListBuyerOrderGroupsResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListBuyerOrderGroupsResponse.ProtoReflect.Descriptor instead.
 func (*ListBuyerOrderGroupsResponse) Descriptor() ([]byte, []int) {
-	return file_proto_order_v1_order_proto_rawDescGZIP(), []int{9}
+	return file_proto_order_v1_order_proto_rawDescGZIP(), []int{10}
 }
 
 func (x *ListBuyerOrderGroupsResponse) GetOrderGroups() []*OrderGroupSummary {
@@ -1207,7 +1347,7 @@ type GetBuyerOrderGroupDetailRequest struct {
 
 func (x *GetBuyerOrderGroupDetailRequest) Reset() {
 	*x = GetBuyerOrderGroupDetailRequest{}
-	mi := &file_proto_order_v1_order_proto_msgTypes[10]
+	mi := &file_proto_order_v1_order_proto_msgTypes[11]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1219,7 +1359,7 @@ func (x *GetBuyerOrderGroupDetailRequest) String() string {
 func (*GetBuyerOrderGroupDetailRequest) ProtoMessage() {}
 
 func (x *GetBuyerOrderGroupDetailRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_order_v1_order_proto_msgTypes[10]
+	mi := &file_proto_order_v1_order_proto_msgTypes[11]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1232,7 +1372,7 @@ func (x *GetBuyerOrderGroupDetailRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetBuyerOrderGroupDetailRequest.ProtoReflect.Descriptor instead.
 func (*GetBuyerOrderGroupDetailRequest) Descriptor() ([]byte, []int) {
-	return file_proto_order_v1_order_proto_rawDescGZIP(), []int{10}
+	return file_proto_order_v1_order_proto_rawDescGZIP(), []int{11}
 }
 
 func (x *GetBuyerOrderGroupDetailRequest) GetUserId() int64 {
@@ -1258,7 +1398,7 @@ type GetBuyerOrderGroupDetailResponse struct {
 
 func (x *GetBuyerOrderGroupDetailResponse) Reset() {
 	*x = GetBuyerOrderGroupDetailResponse{}
-	mi := &file_proto_order_v1_order_proto_msgTypes[11]
+	mi := &file_proto_order_v1_order_proto_msgTypes[12]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1270,7 +1410,7 @@ func (x *GetBuyerOrderGroupDetailResponse) String() string {
 func (*GetBuyerOrderGroupDetailResponse) ProtoMessage() {}
 
 func (x *GetBuyerOrderGroupDetailResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_order_v1_order_proto_msgTypes[11]
+	mi := &file_proto_order_v1_order_proto_msgTypes[12]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1283,12 +1423,308 @@ func (x *GetBuyerOrderGroupDetailResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetBuyerOrderGroupDetailResponse.ProtoReflect.Descriptor instead.
 func (*GetBuyerOrderGroupDetailResponse) Descriptor() ([]byte, []int) {
-	return file_proto_order_v1_order_proto_rawDescGZIP(), []int{11}
+	return file_proto_order_v1_order_proto_rawDescGZIP(), []int{12}
 }
 
 func (x *GetBuyerOrderGroupDetailResponse) GetOrderGroup() *OrderGroupDetail {
 	if x != nil {
 		return x.OrderGroup
+	}
+	return nil
+}
+
+type GetOrderGroupPaymentInfoRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	UserId        int64                  `protobuf:"varint,1,opt,name=user_id,json=userId,proto3" json:"user_id,omitempty"`
+	OrderGroupId  int64                  `protobuf:"varint,2,opt,name=order_group_id,json=orderGroupId,proto3" json:"order_group_id,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *GetOrderGroupPaymentInfoRequest) Reset() {
+	*x = GetOrderGroupPaymentInfoRequest{}
+	mi := &file_proto_order_v1_order_proto_msgTypes[13]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *GetOrderGroupPaymentInfoRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*GetOrderGroupPaymentInfoRequest) ProtoMessage() {}
+
+func (x *GetOrderGroupPaymentInfoRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_proto_order_v1_order_proto_msgTypes[13]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use GetOrderGroupPaymentInfoRequest.ProtoReflect.Descriptor instead.
+func (*GetOrderGroupPaymentInfoRequest) Descriptor() ([]byte, []int) {
+	return file_proto_order_v1_order_proto_rawDescGZIP(), []int{13}
+}
+
+func (x *GetOrderGroupPaymentInfoRequest) GetUserId() int64 {
+	if x != nil {
+		return x.UserId
+	}
+	return 0
+}
+
+func (x *GetOrderGroupPaymentInfoRequest) GetOrderGroupId() int64 {
+	if x != nil {
+		return x.OrderGroupId
+	}
+	return 0
+}
+
+type GetOrderGroupPaymentInfoResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	PaymentInfo   *OrderGroupPaymentInfo `protobuf:"bytes,1,opt,name=payment_info,json=paymentInfo,proto3" json:"payment_info,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *GetOrderGroupPaymentInfoResponse) Reset() {
+	*x = GetOrderGroupPaymentInfoResponse{}
+	mi := &file_proto_order_v1_order_proto_msgTypes[14]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *GetOrderGroupPaymentInfoResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*GetOrderGroupPaymentInfoResponse) ProtoMessage() {}
+
+func (x *GetOrderGroupPaymentInfoResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_proto_order_v1_order_proto_msgTypes[14]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use GetOrderGroupPaymentInfoResponse.ProtoReflect.Descriptor instead.
+func (*GetOrderGroupPaymentInfoResponse) Descriptor() ([]byte, []int) {
+	return file_proto_order_v1_order_proto_rawDescGZIP(), []int{14}
+}
+
+func (x *GetOrderGroupPaymentInfoResponse) GetPaymentInfo() *OrderGroupPaymentInfo {
+	if x != nil {
+		return x.PaymentInfo
+	}
+	return nil
+}
+
+type MarkOrderGroupPaidRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	UserId        int64                  `protobuf:"varint,1,opt,name=user_id,json=userId,proto3" json:"user_id,omitempty"`
+	OrderGroupId  int64                  `protobuf:"varint,2,opt,name=order_group_id,json=orderGroupId,proto3" json:"order_group_id,omitempty"`
+	PaidAt        int64                  `protobuf:"varint,3,opt,name=paid_at,json=paidAt,proto3" json:"paid_at,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *MarkOrderGroupPaidRequest) Reset() {
+	*x = MarkOrderGroupPaidRequest{}
+	mi := &file_proto_order_v1_order_proto_msgTypes[15]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *MarkOrderGroupPaidRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*MarkOrderGroupPaidRequest) ProtoMessage() {}
+
+func (x *MarkOrderGroupPaidRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_proto_order_v1_order_proto_msgTypes[15]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use MarkOrderGroupPaidRequest.ProtoReflect.Descriptor instead.
+func (*MarkOrderGroupPaidRequest) Descriptor() ([]byte, []int) {
+	return file_proto_order_v1_order_proto_rawDescGZIP(), []int{15}
+}
+
+func (x *MarkOrderGroupPaidRequest) GetUserId() int64 {
+	if x != nil {
+		return x.UserId
+	}
+	return 0
+}
+
+func (x *MarkOrderGroupPaidRequest) GetOrderGroupId() int64 {
+	if x != nil {
+		return x.OrderGroupId
+	}
+	return 0
+}
+
+func (x *MarkOrderGroupPaidRequest) GetPaidAt() int64 {
+	if x != nil {
+		return x.PaidAt
+	}
+	return 0
+}
+
+type MarkOrderGroupPaidResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	PaymentInfo   *OrderGroupPaymentInfo `protobuf:"bytes,1,opt,name=payment_info,json=paymentInfo,proto3" json:"payment_info,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *MarkOrderGroupPaidResponse) Reset() {
+	*x = MarkOrderGroupPaidResponse{}
+	mi := &file_proto_order_v1_order_proto_msgTypes[16]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *MarkOrderGroupPaidResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*MarkOrderGroupPaidResponse) ProtoMessage() {}
+
+func (x *MarkOrderGroupPaidResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_proto_order_v1_order_proto_msgTypes[16]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use MarkOrderGroupPaidResponse.ProtoReflect.Descriptor instead.
+func (*MarkOrderGroupPaidResponse) Descriptor() ([]byte, []int) {
+	return file_proto_order_v1_order_proto_rawDescGZIP(), []int{16}
+}
+
+func (x *MarkOrderGroupPaidResponse) GetPaymentInfo() *OrderGroupPaymentInfo {
+	if x != nil {
+		return x.PaymentInfo
+	}
+	return nil
+}
+
+type CloseOrderGroupByPaymentTimeoutRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	UserId        int64                  `protobuf:"varint,1,opt,name=user_id,json=userId,proto3" json:"user_id,omitempty"`
+	OrderGroupId  int64                  `protobuf:"varint,2,opt,name=order_group_id,json=orderGroupId,proto3" json:"order_group_id,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *CloseOrderGroupByPaymentTimeoutRequest) Reset() {
+	*x = CloseOrderGroupByPaymentTimeoutRequest{}
+	mi := &file_proto_order_v1_order_proto_msgTypes[17]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *CloseOrderGroupByPaymentTimeoutRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*CloseOrderGroupByPaymentTimeoutRequest) ProtoMessage() {}
+
+func (x *CloseOrderGroupByPaymentTimeoutRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_proto_order_v1_order_proto_msgTypes[17]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use CloseOrderGroupByPaymentTimeoutRequest.ProtoReflect.Descriptor instead.
+func (*CloseOrderGroupByPaymentTimeoutRequest) Descriptor() ([]byte, []int) {
+	return file_proto_order_v1_order_proto_rawDescGZIP(), []int{17}
+}
+
+func (x *CloseOrderGroupByPaymentTimeoutRequest) GetUserId() int64 {
+	if x != nil {
+		return x.UserId
+	}
+	return 0
+}
+
+func (x *CloseOrderGroupByPaymentTimeoutRequest) GetOrderGroupId() int64 {
+	if x != nil {
+		return x.OrderGroupId
+	}
+	return 0
+}
+
+type CloseOrderGroupByPaymentTimeoutResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	PaymentInfo   *OrderGroupPaymentInfo `protobuf:"bytes,1,opt,name=payment_info,json=paymentInfo,proto3" json:"payment_info,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *CloseOrderGroupByPaymentTimeoutResponse) Reset() {
+	*x = CloseOrderGroupByPaymentTimeoutResponse{}
+	mi := &file_proto_order_v1_order_proto_msgTypes[18]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *CloseOrderGroupByPaymentTimeoutResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*CloseOrderGroupByPaymentTimeoutResponse) ProtoMessage() {}
+
+func (x *CloseOrderGroupByPaymentTimeoutResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_proto_order_v1_order_proto_msgTypes[18]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use CloseOrderGroupByPaymentTimeoutResponse.ProtoReflect.Descriptor instead.
+func (*CloseOrderGroupByPaymentTimeoutResponse) Descriptor() ([]byte, []int) {
+	return file_proto_order_v1_order_proto_rawDescGZIP(), []int{18}
+}
+
+func (x *CloseOrderGroupByPaymentTimeoutResponse) GetPaymentInfo() *OrderGroupPaymentInfo {
+	if x != nil {
+		return x.PaymentInfo
 	}
 	return nil
 }
@@ -1343,7 +1779,7 @@ const file_proto_order_v1_order_proto_rawDesc = "" +
 	"\n" +
 	"created_at\x18\x13 \x01(\x03R\tcreatedAt\x12\x1d\n" +
 	"\n" +
-	"updated_at\x18\x14 \x01(\x03R\tupdatedAt\"\x91\x03\n" +
+	"updated_at\x18\x14 \x01(\x03R\tupdatedAt\"\xaa\x03\n" +
 	"\x10ShopOrderSummary\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\x03R\x02id\x12$\n" +
 	"\x0eorder_group_id\x18\x02 \x01(\x03R\forderGroupId\x12\x17\n" +
@@ -1363,7 +1799,8 @@ const file_proto_order_v1_order_proto_rawDesc = "" +
 	"\n" +
 	"created_at\x18\f \x01(\x03R\tcreatedAt\x12\x1d\n" +
 	"\n" +
-	"updated_at\x18\r \x01(\x03R\tupdatedAt\"\xb5\x03\n" +
+	"updated_at\x18\r \x01(\x03R\tupdatedAt\x12\x17\n" +
+	"\apaid_at\x18\x0e \x01(\x03R\x06paidAt\"\xce\x03\n" +
 	"\tShopOrder\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\x03R\x02id\x12$\n" +
 	"\x0eorder_group_id\x18\x02 \x01(\x03R\forderGroupId\x12\x17\n" +
@@ -1384,7 +1821,8 @@ const file_proto_order_v1_order_proto_rawDesc = "" +
 	"\n" +
 	"created_at\x18\r \x01(\x03R\tcreatedAt\x12\x1d\n" +
 	"\n" +
-	"updated_at\x18\x0e \x01(\x03R\tupdatedAt\"\xd6\x03\n" +
+	"updated_at\x18\x0e \x01(\x03R\tupdatedAt\x12\x17\n" +
+	"\apaid_at\x18\x0f \x01(\x03R\x06paidAt\"\x9f\x04\n" +
 	"\x11OrderGroupSummary\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\x03R\x02id\x12\x17\n" +
 	"\auser_id\x18\x02 \x01(\x03R\x06userId\x12\x16\n" +
@@ -1403,7 +1841,9 @@ const file_proto_order_v1_order_proto_rawDesc = "" +
 	"\n" +
 	"created_at\x18\f \x01(\x03R\tcreatedAt\x12\x1d\n" +
 	"\n" +
-	"updated_at\x18\r \x01(\x03R\tupdatedAt\"\x83\x04\n" +
+	"updated_at\x18\r \x01(\x03R\tupdatedAt\x12.\n" +
+	"\x13payment_deadline_at\x18\x0e \x01(\x03R\x11paymentDeadlineAt\x12\x17\n" +
+	"\apaid_at\x18\x0f \x01(\x03R\x06paidAt\"\xcc\x04\n" +
 	"\x10OrderGroupDetail\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\x03R\x02id\x12\x17\n" +
 	"\auser_id\x18\x02 \x01(\x03R\x06userId\x12\x16\n" +
@@ -1423,7 +1863,17 @@ const file_proto_order_v1_order_proto_rawDesc = "" +
 	"\n" +
 	"created_at\x18\r \x01(\x03R\tcreatedAt\x12\x1d\n" +
 	"\n" +
-	"updated_at\x18\x0e \x01(\x03R\tupdatedAt\"\x88\x01\n" +
+	"updated_at\x18\x0e \x01(\x03R\tupdatedAt\x12.\n" +
+	"\x13payment_deadline_at\x18\x0f \x01(\x03R\x11paymentDeadlineAt\x12\x17\n" +
+	"\apaid_at\x18\x10 \x01(\x03R\x06paidAt\"\xfd\x01\n" +
+	"\x15OrderGroupPaymentInfo\x12$\n" +
+	"\x0eorder_group_id\x18\x01 \x01(\x03R\forderGroupId\x12\x17\n" +
+	"\auser_id\x18\x02 \x01(\x03R\x06userId\x12\x16\n" +
+	"\x06status\x18\x03 \x01(\tR\x06status\x12(\n" +
+	"\x10total_pay_amount\x18\x04 \x01(\x03R\x0etotalPayAmount\x12\x1a\n" +
+	"\bcurrency\x18\x05 \x01(\tR\bcurrency\x12.\n" +
+	"\x13payment_deadline_at\x18\x06 \x01(\x03R\x11paymentDeadlineAt\x12\x17\n" +
+	"\apaid_at\x18\a \x01(\x03R\x06paidAt\"\x88\x01\n" +
 	"\x12SubmitOrderRequest\x12\x17\n" +
 	"\auser_id\x18\x01 \x01(\x03R\x06userId\x12\x1d\n" +
 	"\n" +
@@ -1448,11 +1898,30 @@ const file_proto_order_v1_order_proto_rawDesc = "" +
 	"\x0eorder_group_id\x18\x02 \x01(\x03R\forderGroupId\"_\n" +
 	" GetBuyerOrderGroupDetailResponse\x12;\n" +
 	"\vorder_group\x18\x01 \x01(\v2\x1a.order.v1.OrderGroupDetailR\n" +
-	"orderGroup2\xb4\x02\n" +
+	"orderGroup\"`\n" +
+	"\x1fGetOrderGroupPaymentInfoRequest\x12\x17\n" +
+	"\auser_id\x18\x01 \x01(\x03R\x06userId\x12$\n" +
+	"\x0eorder_group_id\x18\x02 \x01(\x03R\forderGroupId\"f\n" +
+	" GetOrderGroupPaymentInfoResponse\x12B\n" +
+	"\fpayment_info\x18\x01 \x01(\v2\x1f.order.v1.OrderGroupPaymentInfoR\vpaymentInfo\"s\n" +
+	"\x19MarkOrderGroupPaidRequest\x12\x17\n" +
+	"\auser_id\x18\x01 \x01(\x03R\x06userId\x12$\n" +
+	"\x0eorder_group_id\x18\x02 \x01(\x03R\forderGroupId\x12\x17\n" +
+	"\apaid_at\x18\x03 \x01(\x03R\x06paidAt\"`\n" +
+	"\x1aMarkOrderGroupPaidResponse\x12B\n" +
+	"\fpayment_info\x18\x01 \x01(\v2\x1f.order.v1.OrderGroupPaymentInfoR\vpaymentInfo\"g\n" +
+	"&CloseOrderGroupByPaymentTimeoutRequest\x12\x17\n" +
+	"\auser_id\x18\x01 \x01(\x03R\x06userId\x12$\n" +
+	"\x0eorder_group_id\x18\x02 \x01(\x03R\forderGroupId\"m\n" +
+	"'CloseOrderGroupByPaymentTimeoutResponse\x12B\n" +
+	"\fpayment_info\x18\x01 \x01(\v2\x1f.order.v1.OrderGroupPaymentInfoR\vpaymentInfo2\x91\x05\n" +
 	"\fOrderService\x12J\n" +
 	"\vSubmitOrder\x12\x1c.order.v1.SubmitOrderRequest\x1a\x1d.order.v1.SubmitOrderResponse\x12e\n" +
 	"\x14ListBuyerOrderGroups\x12%.order.v1.ListBuyerOrderGroupsRequest\x1a&.order.v1.ListBuyerOrderGroupsResponse\x12q\n" +
-	"\x18GetBuyerOrderGroupDetail\x12).order.v1.GetBuyerOrderGroupDetailRequest\x1a*.order.v1.GetBuyerOrderGroupDetailResponseBFZDgithub.com/freesoulcode/free-ecommerce/gen/go/proto/order/v1;orderv1b\x06proto3"
+	"\x18GetBuyerOrderGroupDetail\x12).order.v1.GetBuyerOrderGroupDetailRequest\x1a*.order.v1.GetBuyerOrderGroupDetailResponse\x12q\n" +
+	"\x18GetOrderGroupPaymentInfo\x12).order.v1.GetOrderGroupPaymentInfoRequest\x1a*.order.v1.GetOrderGroupPaymentInfoResponse\x12_\n" +
+	"\x12MarkOrderGroupPaid\x12#.order.v1.MarkOrderGroupPaidRequest\x1a$.order.v1.MarkOrderGroupPaidResponse\x12\x86\x01\n" +
+	"\x1fCloseOrderGroupByPaymentTimeout\x120.order.v1.CloseOrderGroupByPaymentTimeoutRequest\x1a1.order.v1.CloseOrderGroupByPaymentTimeoutResponseBFZDgithub.com/freesoulcode/free-ecommerce/gen/go/proto/order/v1;orderv1b\x06proto3"
 
 var (
 	file_proto_order_v1_order_proto_rawDescOnce sync.Once
@@ -1466,20 +1935,27 @@ func file_proto_order_v1_order_proto_rawDescGZIP() []byte {
 	return file_proto_order_v1_order_proto_rawDescData
 }
 
-var file_proto_order_v1_order_proto_msgTypes = make([]protoimpl.MessageInfo, 12)
+var file_proto_order_v1_order_proto_msgTypes = make([]protoimpl.MessageInfo, 19)
 var file_proto_order_v1_order_proto_goTypes = []any{
-	(*AddressSnapshot)(nil),                  // 0: order.v1.AddressSnapshot
-	(*OrderItem)(nil),                        // 1: order.v1.OrderItem
-	(*ShopOrderSummary)(nil),                 // 2: order.v1.ShopOrderSummary
-	(*ShopOrder)(nil),                        // 3: order.v1.ShopOrder
-	(*OrderGroupSummary)(nil),                // 4: order.v1.OrderGroupSummary
-	(*OrderGroupDetail)(nil),                 // 5: order.v1.OrderGroupDetail
-	(*SubmitOrderRequest)(nil),               // 6: order.v1.SubmitOrderRequest
-	(*SubmitOrderResponse)(nil),              // 7: order.v1.SubmitOrderResponse
-	(*ListBuyerOrderGroupsRequest)(nil),      // 8: order.v1.ListBuyerOrderGroupsRequest
-	(*ListBuyerOrderGroupsResponse)(nil),     // 9: order.v1.ListBuyerOrderGroupsResponse
-	(*GetBuyerOrderGroupDetailRequest)(nil),  // 10: order.v1.GetBuyerOrderGroupDetailRequest
-	(*GetBuyerOrderGroupDetailResponse)(nil), // 11: order.v1.GetBuyerOrderGroupDetailResponse
+	(*AddressSnapshot)(nil),                         // 0: order.v1.AddressSnapshot
+	(*OrderItem)(nil),                               // 1: order.v1.OrderItem
+	(*ShopOrderSummary)(nil),                        // 2: order.v1.ShopOrderSummary
+	(*ShopOrder)(nil),                               // 3: order.v1.ShopOrder
+	(*OrderGroupSummary)(nil),                       // 4: order.v1.OrderGroupSummary
+	(*OrderGroupDetail)(nil),                        // 5: order.v1.OrderGroupDetail
+	(*OrderGroupPaymentInfo)(nil),                   // 6: order.v1.OrderGroupPaymentInfo
+	(*SubmitOrderRequest)(nil),                      // 7: order.v1.SubmitOrderRequest
+	(*SubmitOrderResponse)(nil),                     // 8: order.v1.SubmitOrderResponse
+	(*ListBuyerOrderGroupsRequest)(nil),             // 9: order.v1.ListBuyerOrderGroupsRequest
+	(*ListBuyerOrderGroupsResponse)(nil),            // 10: order.v1.ListBuyerOrderGroupsResponse
+	(*GetBuyerOrderGroupDetailRequest)(nil),         // 11: order.v1.GetBuyerOrderGroupDetailRequest
+	(*GetBuyerOrderGroupDetailResponse)(nil),        // 12: order.v1.GetBuyerOrderGroupDetailResponse
+	(*GetOrderGroupPaymentInfoRequest)(nil),         // 13: order.v1.GetOrderGroupPaymentInfoRequest
+	(*GetOrderGroupPaymentInfoResponse)(nil),        // 14: order.v1.GetOrderGroupPaymentInfoResponse
+	(*MarkOrderGroupPaidRequest)(nil),               // 15: order.v1.MarkOrderGroupPaidRequest
+	(*MarkOrderGroupPaidResponse)(nil),              // 16: order.v1.MarkOrderGroupPaidResponse
+	(*CloseOrderGroupByPaymentTimeoutRequest)(nil),  // 17: order.v1.CloseOrderGroupByPaymentTimeoutRequest
+	(*CloseOrderGroupByPaymentTimeoutResponse)(nil), // 18: order.v1.CloseOrderGroupByPaymentTimeoutResponse
 }
 var file_proto_order_v1_order_proto_depIdxs = []int32{
 	1,  // 0: order.v1.ShopOrder.items:type_name -> order.v1.OrderItem
@@ -1489,17 +1965,26 @@ var file_proto_order_v1_order_proto_depIdxs = []int32{
 	5,  // 4: order.v1.SubmitOrderResponse.order_group:type_name -> order.v1.OrderGroupDetail
 	4,  // 5: order.v1.ListBuyerOrderGroupsResponse.order_groups:type_name -> order.v1.OrderGroupSummary
 	5,  // 6: order.v1.GetBuyerOrderGroupDetailResponse.order_group:type_name -> order.v1.OrderGroupDetail
-	6,  // 7: order.v1.OrderService.SubmitOrder:input_type -> order.v1.SubmitOrderRequest
-	8,  // 8: order.v1.OrderService.ListBuyerOrderGroups:input_type -> order.v1.ListBuyerOrderGroupsRequest
-	10, // 9: order.v1.OrderService.GetBuyerOrderGroupDetail:input_type -> order.v1.GetBuyerOrderGroupDetailRequest
-	7,  // 10: order.v1.OrderService.SubmitOrder:output_type -> order.v1.SubmitOrderResponse
-	9,  // 11: order.v1.OrderService.ListBuyerOrderGroups:output_type -> order.v1.ListBuyerOrderGroupsResponse
-	11, // 12: order.v1.OrderService.GetBuyerOrderGroupDetail:output_type -> order.v1.GetBuyerOrderGroupDetailResponse
-	10, // [10:13] is the sub-list for method output_type
-	7,  // [7:10] is the sub-list for method input_type
-	7,  // [7:7] is the sub-list for extension type_name
-	7,  // [7:7] is the sub-list for extension extendee
-	0,  // [0:7] is the sub-list for field type_name
+	6,  // 7: order.v1.GetOrderGroupPaymentInfoResponse.payment_info:type_name -> order.v1.OrderGroupPaymentInfo
+	6,  // 8: order.v1.MarkOrderGroupPaidResponse.payment_info:type_name -> order.v1.OrderGroupPaymentInfo
+	6,  // 9: order.v1.CloseOrderGroupByPaymentTimeoutResponse.payment_info:type_name -> order.v1.OrderGroupPaymentInfo
+	7,  // 10: order.v1.OrderService.SubmitOrder:input_type -> order.v1.SubmitOrderRequest
+	9,  // 11: order.v1.OrderService.ListBuyerOrderGroups:input_type -> order.v1.ListBuyerOrderGroupsRequest
+	11, // 12: order.v1.OrderService.GetBuyerOrderGroupDetail:input_type -> order.v1.GetBuyerOrderGroupDetailRequest
+	13, // 13: order.v1.OrderService.GetOrderGroupPaymentInfo:input_type -> order.v1.GetOrderGroupPaymentInfoRequest
+	15, // 14: order.v1.OrderService.MarkOrderGroupPaid:input_type -> order.v1.MarkOrderGroupPaidRequest
+	17, // 15: order.v1.OrderService.CloseOrderGroupByPaymentTimeout:input_type -> order.v1.CloseOrderGroupByPaymentTimeoutRequest
+	8,  // 16: order.v1.OrderService.SubmitOrder:output_type -> order.v1.SubmitOrderResponse
+	10, // 17: order.v1.OrderService.ListBuyerOrderGroups:output_type -> order.v1.ListBuyerOrderGroupsResponse
+	12, // 18: order.v1.OrderService.GetBuyerOrderGroupDetail:output_type -> order.v1.GetBuyerOrderGroupDetailResponse
+	14, // 19: order.v1.OrderService.GetOrderGroupPaymentInfo:output_type -> order.v1.GetOrderGroupPaymentInfoResponse
+	16, // 20: order.v1.OrderService.MarkOrderGroupPaid:output_type -> order.v1.MarkOrderGroupPaidResponse
+	18, // 21: order.v1.OrderService.CloseOrderGroupByPaymentTimeout:output_type -> order.v1.CloseOrderGroupByPaymentTimeoutResponse
+	16, // [16:22] is the sub-list for method output_type
+	10, // [10:16] is the sub-list for method input_type
+	10, // [10:10] is the sub-list for extension type_name
+	10, // [10:10] is the sub-list for extension extendee
+	0,  // [0:10] is the sub-list for field type_name
 }
 
 func init() { file_proto_order_v1_order_proto_init() }
@@ -1513,7 +1998,7 @@ func file_proto_order_v1_order_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_proto_order_v1_order_proto_rawDesc), len(file_proto_order_v1_order_proto_rawDesc)),
 			NumEnums:      0,
-			NumMessages:   12,
+			NumMessages:   19,
 			NumExtensions: 0,
 			NumServices:   1,
 		},

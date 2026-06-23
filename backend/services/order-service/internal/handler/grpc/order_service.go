@@ -3,6 +3,7 @@ package grpc
 import (
 	"context"
 	stderrors "errors"
+	"time"
 
 	appErrors "github.com/freesoulcode/free-ecommerce/backend/pkg/errors"
 	applicationorder "github.com/freesoulcode/free-ecommerce/backend/services/order-service/internal/application/order"
@@ -14,13 +15,30 @@ import (
 
 type OrderServiceServer struct {
 	orderv1.UnimplementedOrderServiceServer
-	submitService *applicationorder.SubmitOrderService
-	listService   *applicationorder.ListBuyerOrderGroupsService
-	getService    *applicationorder.GetBuyerOrderGroupDetailService
+	submitService       *applicationorder.SubmitOrderService
+	listService         *applicationorder.ListBuyerOrderGroupsService
+	getService          *applicationorder.GetBuyerOrderGroupDetailService
+	getPaymentInfo      *applicationorder.GetOrderGroupPaymentInfoService
+	markPaidService     *applicationorder.MarkOrderGroupPaidService
+	closeTimeoutService *applicationorder.CloseOrderGroupByPaymentTimeoutService
 }
 
-func NewOrderServiceServer(submitService *applicationorder.SubmitOrderService, listService *applicationorder.ListBuyerOrderGroupsService, getService *applicationorder.GetBuyerOrderGroupDetailService) *OrderServiceServer {
-	return &OrderServiceServer{submitService: submitService, listService: listService, getService: getService}
+func NewOrderServiceServer(
+	submitService *applicationorder.SubmitOrderService,
+	listService *applicationorder.ListBuyerOrderGroupsService,
+	getService *applicationorder.GetBuyerOrderGroupDetailService,
+	getPaymentInfo *applicationorder.GetOrderGroupPaymentInfoService,
+	markPaidService *applicationorder.MarkOrderGroupPaidService,
+	closeTimeoutService *applicationorder.CloseOrderGroupByPaymentTimeoutService,
+) *OrderServiceServer {
+	return &OrderServiceServer{
+		submitService:       submitService,
+		listService:         listService,
+		getService:          getService,
+		getPaymentInfo:      getPaymentInfo,
+		markPaidService:     markPaidService,
+		closeTimeoutService: closeTimeoutService,
+	}
 }
 
 func (s *OrderServiceServer) SubmitOrder(ctx context.Context, req *orderv1.SubmitOrderRequest) (*orderv1.SubmitOrderResponse, error) {
@@ -75,6 +93,42 @@ func (s *OrderServiceServer) GetBuyerOrderGroupDetail(ctx context.Context, req *
 	}
 
 	return &orderv1.GetBuyerOrderGroupDetailResponse{OrderGroup: toOrderGroupDetailPB(group)}, nil
+}
+
+func (s *OrderServiceServer) GetOrderGroupPaymentInfo(ctx context.Context, req *orderv1.GetOrderGroupPaymentInfoRequest) (*orderv1.GetOrderGroupPaymentInfoResponse, error) {
+	if req == nil {
+		return nil, status.Error(codes.InvalidArgument, "request is required")
+	}
+
+	info, err := s.getPaymentInfo.Execute(ctx, req.GetUserId(), req.GetOrderGroupId())
+	if err != nil {
+		return nil, toGRPCError(err)
+	}
+	return &orderv1.GetOrderGroupPaymentInfoResponse{PaymentInfo: toPaymentInfoPB(info)}, nil
+}
+
+func (s *OrderServiceServer) MarkOrderGroupPaid(ctx context.Context, req *orderv1.MarkOrderGroupPaidRequest) (*orderv1.MarkOrderGroupPaidResponse, error) {
+	if req == nil {
+		return nil, status.Error(codes.InvalidArgument, "request is required")
+	}
+
+	info, err := s.markPaidService.Execute(ctx, req.GetUserId(), req.GetOrderGroupId())
+	if err != nil {
+		return nil, toGRPCError(err)
+	}
+	return &orderv1.MarkOrderGroupPaidResponse{PaymentInfo: toPaymentInfoPB(info)}, nil
+}
+
+func (s *OrderServiceServer) CloseOrderGroupByPaymentTimeout(ctx context.Context, req *orderv1.CloseOrderGroupByPaymentTimeoutRequest) (*orderv1.CloseOrderGroupByPaymentTimeoutResponse, error) {
+	if req == nil {
+		return nil, status.Error(codes.InvalidArgument, "request is required")
+	}
+
+	info, err := s.closeTimeoutService.Execute(ctx, req.GetUserId(), req.GetOrderGroupId())
+	if err != nil {
+		return nil, toGRPCError(err)
+	}
+	return &orderv1.CloseOrderGroupByPaymentTimeoutResponse{PaymentInfo: toPaymentInfoPB(info)}, nil
 }
 
 func toGRPCError(err error) error {
@@ -167,6 +221,7 @@ func toShopOrderSummaryPB(shopOrder *domainorder.ShopOrderSummary) *orderv1.Shop
 		ItemCount:      shopOrder.ItemCount,
 		CreatedAt:      shopOrder.CreatedAt.Unix(),
 		UpdatedAt:      shopOrder.UpdatedAt.Unix(),
+		PaidAt:         unixOrZero(shopOrder.PaidAt),
 	}
 }
 
@@ -195,6 +250,7 @@ func toShopOrderPB(shopOrder *domainorder.ShopOrder) *orderv1.ShopOrder {
 		Items:          items,
 		CreatedAt:      shopOrder.CreatedAt.Unix(),
 		UpdatedAt:      shopOrder.UpdatedAt.Unix(),
+		PaidAt:         unixOrZero(shopOrder.PaidAt),
 	}
 }
 
@@ -222,6 +278,8 @@ func toOrderGroupSummaryPB(group *domainorder.GroupSummary) *orderv1.OrderGroupS
 		ShopOrders:          shopOrders,
 		CreatedAt:           group.CreatedAt.Unix(),
 		UpdatedAt:           group.UpdatedAt.Unix(),
+		PaymentDeadlineAt:   group.PaymentDeadlineAt.Unix(),
+		PaidAt:              unixOrZero(group.PaidAt),
 	}
 }
 
@@ -250,5 +308,29 @@ func toOrderGroupDetailPB(group *domainorder.Group) *orderv1.OrderGroupDetail {
 		ShopOrders:          shopOrders,
 		CreatedAt:           group.CreatedAt.Unix(),
 		UpdatedAt:           group.UpdatedAt.Unix(),
+		PaymentDeadlineAt:   group.PaymentDeadlineAt.Unix(),
+		PaidAt:              unixOrZero(group.PaidAt),
 	}
+}
+
+func toPaymentInfoPB(info *domainorder.PaymentInfo) *orderv1.OrderGroupPaymentInfo {
+	if info == nil {
+		return nil
+	}
+	return &orderv1.OrderGroupPaymentInfo{
+		OrderGroupId:      info.OrderGroupID,
+		UserId:            info.UserID,
+		Status:            info.Status,
+		TotalPayAmount:    info.TotalPayAmount,
+		Currency:          info.Currency,
+		PaymentDeadlineAt: info.PaymentDeadlineAt.Unix(),
+		PaidAt:            unixOrZero(info.PaidAt),
+	}
+}
+
+func unixOrZero(value *time.Time) int64 {
+	if value == nil {
+		return 0
+	}
+	return value.Unix()
 }

@@ -19,9 +19,12 @@ import (
 const _ = grpc.SupportPackageIsVersion9
 
 const (
-	OrderService_SubmitOrder_FullMethodName              = "/order.v1.OrderService/SubmitOrder"
-	OrderService_ListBuyerOrderGroups_FullMethodName     = "/order.v1.OrderService/ListBuyerOrderGroups"
-	OrderService_GetBuyerOrderGroupDetail_FullMethodName = "/order.v1.OrderService/GetBuyerOrderGroupDetail"
+	OrderService_SubmitOrder_FullMethodName                     = "/order.v1.OrderService/SubmitOrder"
+	OrderService_ListBuyerOrderGroups_FullMethodName            = "/order.v1.OrderService/ListBuyerOrderGroups"
+	OrderService_GetBuyerOrderGroupDetail_FullMethodName        = "/order.v1.OrderService/GetBuyerOrderGroupDetail"
+	OrderService_GetOrderGroupPaymentInfo_FullMethodName        = "/order.v1.OrderService/GetOrderGroupPaymentInfo"
+	OrderService_MarkOrderGroupPaid_FullMethodName              = "/order.v1.OrderService/MarkOrderGroupPaid"
+	OrderService_CloseOrderGroupByPaymentTimeout_FullMethodName = "/order.v1.OrderService/CloseOrderGroupByPaymentTimeout"
 )
 
 // OrderServiceClient is the client API for OrderService service.
@@ -31,6 +34,9 @@ type OrderServiceClient interface {
 	SubmitOrder(ctx context.Context, in *SubmitOrderRequest, opts ...grpc.CallOption) (*SubmitOrderResponse, error)
 	ListBuyerOrderGroups(ctx context.Context, in *ListBuyerOrderGroupsRequest, opts ...grpc.CallOption) (*ListBuyerOrderGroupsResponse, error)
 	GetBuyerOrderGroupDetail(ctx context.Context, in *GetBuyerOrderGroupDetailRequest, opts ...grpc.CallOption) (*GetBuyerOrderGroupDetailResponse, error)
+	GetOrderGroupPaymentInfo(ctx context.Context, in *GetOrderGroupPaymentInfoRequest, opts ...grpc.CallOption) (*GetOrderGroupPaymentInfoResponse, error)
+	MarkOrderGroupPaid(ctx context.Context, in *MarkOrderGroupPaidRequest, opts ...grpc.CallOption) (*MarkOrderGroupPaidResponse, error)
+	CloseOrderGroupByPaymentTimeout(ctx context.Context, in *CloseOrderGroupByPaymentTimeoutRequest, opts ...grpc.CallOption) (*CloseOrderGroupByPaymentTimeoutResponse, error)
 }
 
 type orderServiceClient struct {
@@ -71,6 +77,36 @@ func (c *orderServiceClient) GetBuyerOrderGroupDetail(ctx context.Context, in *G
 	return out, nil
 }
 
+func (c *orderServiceClient) GetOrderGroupPaymentInfo(ctx context.Context, in *GetOrderGroupPaymentInfoRequest, opts ...grpc.CallOption) (*GetOrderGroupPaymentInfoResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(GetOrderGroupPaymentInfoResponse)
+	err := c.cc.Invoke(ctx, OrderService_GetOrderGroupPaymentInfo_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *orderServiceClient) MarkOrderGroupPaid(ctx context.Context, in *MarkOrderGroupPaidRequest, opts ...grpc.CallOption) (*MarkOrderGroupPaidResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(MarkOrderGroupPaidResponse)
+	err := c.cc.Invoke(ctx, OrderService_MarkOrderGroupPaid_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *orderServiceClient) CloseOrderGroupByPaymentTimeout(ctx context.Context, in *CloseOrderGroupByPaymentTimeoutRequest, opts ...grpc.CallOption) (*CloseOrderGroupByPaymentTimeoutResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(CloseOrderGroupByPaymentTimeoutResponse)
+	err := c.cc.Invoke(ctx, OrderService_CloseOrderGroupByPaymentTimeout_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // OrderServiceServer is the server API for OrderService service.
 // All implementations must embed UnimplementedOrderServiceServer
 // for forward compatibility.
@@ -78,6 +114,9 @@ type OrderServiceServer interface {
 	SubmitOrder(context.Context, *SubmitOrderRequest) (*SubmitOrderResponse, error)
 	ListBuyerOrderGroups(context.Context, *ListBuyerOrderGroupsRequest) (*ListBuyerOrderGroupsResponse, error)
 	GetBuyerOrderGroupDetail(context.Context, *GetBuyerOrderGroupDetailRequest) (*GetBuyerOrderGroupDetailResponse, error)
+	GetOrderGroupPaymentInfo(context.Context, *GetOrderGroupPaymentInfoRequest) (*GetOrderGroupPaymentInfoResponse, error)
+	MarkOrderGroupPaid(context.Context, *MarkOrderGroupPaidRequest) (*MarkOrderGroupPaidResponse, error)
+	CloseOrderGroupByPaymentTimeout(context.Context, *CloseOrderGroupByPaymentTimeoutRequest) (*CloseOrderGroupByPaymentTimeoutResponse, error)
 	mustEmbedUnimplementedOrderServiceServer()
 }
 
@@ -96,6 +135,15 @@ func (UnimplementedOrderServiceServer) ListBuyerOrderGroups(context.Context, *Li
 }
 func (UnimplementedOrderServiceServer) GetBuyerOrderGroupDetail(context.Context, *GetBuyerOrderGroupDetailRequest) (*GetBuyerOrderGroupDetailResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method GetBuyerOrderGroupDetail not implemented")
+}
+func (UnimplementedOrderServiceServer) GetOrderGroupPaymentInfo(context.Context, *GetOrderGroupPaymentInfoRequest) (*GetOrderGroupPaymentInfoResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method GetOrderGroupPaymentInfo not implemented")
+}
+func (UnimplementedOrderServiceServer) MarkOrderGroupPaid(context.Context, *MarkOrderGroupPaidRequest) (*MarkOrderGroupPaidResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method MarkOrderGroupPaid not implemented")
+}
+func (UnimplementedOrderServiceServer) CloseOrderGroupByPaymentTimeout(context.Context, *CloseOrderGroupByPaymentTimeoutRequest) (*CloseOrderGroupByPaymentTimeoutResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method CloseOrderGroupByPaymentTimeout not implemented")
 }
 func (UnimplementedOrderServiceServer) mustEmbedUnimplementedOrderServiceServer() {}
 func (UnimplementedOrderServiceServer) testEmbeddedByValue()                      {}
@@ -172,6 +220,60 @@ func _OrderService_GetBuyerOrderGroupDetail_Handler(srv interface{}, ctx context
 	return interceptor(ctx, in, info, handler)
 }
 
+func _OrderService_GetOrderGroupPaymentInfo_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetOrderGroupPaymentInfoRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(OrderServiceServer).GetOrderGroupPaymentInfo(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: OrderService_GetOrderGroupPaymentInfo_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(OrderServiceServer).GetOrderGroupPaymentInfo(ctx, req.(*GetOrderGroupPaymentInfoRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _OrderService_MarkOrderGroupPaid_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(MarkOrderGroupPaidRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(OrderServiceServer).MarkOrderGroupPaid(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: OrderService_MarkOrderGroupPaid_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(OrderServiceServer).MarkOrderGroupPaid(ctx, req.(*MarkOrderGroupPaidRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _OrderService_CloseOrderGroupByPaymentTimeout_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(CloseOrderGroupByPaymentTimeoutRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(OrderServiceServer).CloseOrderGroupByPaymentTimeout(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: OrderService_CloseOrderGroupByPaymentTimeout_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(OrderServiceServer).CloseOrderGroupByPaymentTimeout(ctx, req.(*CloseOrderGroupByPaymentTimeoutRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // OrderService_ServiceDesc is the grpc.ServiceDesc for OrderService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -190,6 +292,18 @@ var OrderService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "GetBuyerOrderGroupDetail",
 			Handler:    _OrderService_GetBuyerOrderGroupDetail_Handler,
+		},
+		{
+			MethodName: "GetOrderGroupPaymentInfo",
+			Handler:    _OrderService_GetOrderGroupPaymentInfo_Handler,
+		},
+		{
+			MethodName: "MarkOrderGroupPaid",
+			Handler:    _OrderService_MarkOrderGroupPaid_Handler,
+		},
+		{
+			MethodName: "CloseOrderGroupByPaymentTimeout",
+			Handler:    _OrderService_CloseOrderGroupByPaymentTimeout_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

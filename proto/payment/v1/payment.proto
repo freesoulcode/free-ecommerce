@@ -1,0 +1,53 @@
+syntax = "proto3";
+
+package payment.v1;
+
+option go_package = "github.com/freesoulcode/free-ecommerce/gen/go/proto/payment/v1;paymentv1";
+
+service PaymentService {
+  rpc CreatePaymentOrder(CreatePaymentOrderRequest) returns (CreatePaymentOrderResponse);
+  rpc GetPaymentOrderByOrderGroup(GetPaymentOrderByOrderGroupRequest) returns (GetPaymentOrderByOrderGroupResponse);
+  rpc SimulatePay(SimulatePayRequest) returns (SimulatePayResponse);
+}
+
+message PaymentOrder {
+  int64 id = 1;
+  int64 user_id = 2;
+  int64 order_group_id = 3;
+  string status = 4;
+  string channel = 5;
+  int64 pay_amount = 6;
+  string currency = 7;
+  int64 expire_at = 8;
+  int64 paid_at = 9;
+  int64 created_at = 10;
+  int64 updated_at = 11;
+}
+
+message CreatePaymentOrderRequest {
+  int64 user_id = 1;
+  int64 order_group_id = 2;
+  string channel = 3;
+}
+
+message CreatePaymentOrderResponse {
+  PaymentOrder payment_order = 1;
+}
+
+message GetPaymentOrderByOrderGroupRequest {
+  int64 user_id = 1;
+  int64 order_group_id = 2;
+}
+
+message GetPaymentOrderByOrderGroupResponse {
+  PaymentOrder payment_order = 1;
+}
+
+message SimulatePayRequest {
+  int64 user_id = 1;
+  int64 order_group_id = 2;
+}
+
+message SimulatePayResponse {
+  PaymentOrder payment_order = 1;
+}

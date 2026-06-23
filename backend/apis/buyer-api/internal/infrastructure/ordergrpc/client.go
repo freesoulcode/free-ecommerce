@@ -95,7 +95,7 @@ func toShopOrderSummary(shopOrder *orderv1.ShopOrderSummary) *applicationbuyer.S
 	if shopOrder == nil {
 		return nil
 	}
-	return &applicationbuyer.ShopOrderSummary{ID: shopOrder.GetId(), OrderGroupID: shopOrder.GetOrderGroupId(), UserID: shopOrder.GetUserId(), ShopID: shopOrder.GetShopId(), ShopName: shopOrder.GetShopName(), Status: shopOrder.GetStatus(), ItemAmount: shopOrder.GetItemAmount(), ShippingAmount: shopOrder.GetShippingAmount(), PayAmount: shopOrder.GetPayAmount(), Currency: shopOrder.GetCurrency(), ItemCount: shopOrder.GetItemCount(), CreatedAt: shopOrder.GetCreatedAt(), UpdatedAt: shopOrder.GetUpdatedAt()}
+	return &applicationbuyer.ShopOrderSummary{ID: shopOrder.GetId(), OrderGroupID: shopOrder.GetOrderGroupId(), UserID: shopOrder.GetUserId(), ShopID: shopOrder.GetShopId(), ShopName: shopOrder.GetShopName(), Status: shopOrder.GetStatus(), ItemAmount: shopOrder.GetItemAmount(), ShippingAmount: shopOrder.GetShippingAmount(), PayAmount: shopOrder.GetPayAmount(), Currency: shopOrder.GetCurrency(), ItemCount: shopOrder.GetItemCount(), PaidAt: shopOrder.GetPaidAt(), CreatedAt: shopOrder.GetCreatedAt(), UpdatedAt: shopOrder.GetUpdatedAt()}
 }
 
 func toShopOrder(shopOrder *orderv1.ShopOrder) *applicationbuyer.ShopOrder {
@@ -106,7 +106,7 @@ func toShopOrder(shopOrder *orderv1.ShopOrder) *applicationbuyer.ShopOrder {
 	for _, item := range shopOrder.GetItems() {
 		items = append(items, toOrderItem(item))
 	}
-	return &applicationbuyer.ShopOrder{ID: shopOrder.GetId(), OrderGroupID: shopOrder.GetOrderGroupId(), UserID: shopOrder.GetUserId(), ShopID: shopOrder.GetShopId(), ShopName: shopOrder.GetShopName(), Status: shopOrder.GetStatus(), ItemAmount: shopOrder.GetItemAmount(), ShippingAmount: shopOrder.GetShippingAmount(), PayAmount: shopOrder.GetPayAmount(), Currency: shopOrder.GetCurrency(), ItemCount: shopOrder.GetItemCount(), Items: items, CreatedAt: shopOrder.GetCreatedAt(), UpdatedAt: shopOrder.GetUpdatedAt()}
+	return &applicationbuyer.ShopOrder{ID: shopOrder.GetId(), OrderGroupID: shopOrder.GetOrderGroupId(), UserID: shopOrder.GetUserId(), ShopID: shopOrder.GetShopId(), ShopName: shopOrder.GetShopName(), Status: shopOrder.GetStatus(), ItemAmount: shopOrder.GetItemAmount(), ShippingAmount: shopOrder.GetShippingAmount(), PayAmount: shopOrder.GetPayAmount(), Currency: shopOrder.GetCurrency(), ItemCount: shopOrder.GetItemCount(), Items: items, PaidAt: shopOrder.GetPaidAt(), CreatedAt: shopOrder.GetCreatedAt(), UpdatedAt: shopOrder.GetUpdatedAt()}
 }
 
 func toOrderGroupSummary(group *orderv1.OrderGroupSummary) *applicationbuyer.OrderGroupSummary {
@@ -117,7 +117,7 @@ func toOrderGroupSummary(group *orderv1.OrderGroupSummary) *applicationbuyer.Ord
 	for _, shopOrder := range group.GetShopOrders() {
 		shopOrders = append(shopOrders, toShopOrderSummary(shopOrder))
 	}
-	return &applicationbuyer.OrderGroupSummary{ID: group.GetId(), UserID: group.GetUserId(), Status: group.GetStatus(), Source: group.GetSource(), TotalItemAmount: group.GetTotalItemAmount(), TotalShippingAmount: group.GetTotalShippingAmount(), TotalPayAmount: group.GetTotalPayAmount(), Currency: group.GetCurrency(), ShopOrderCount: group.GetShopOrderCount(), ItemCount: group.GetItemCount(), ShopOrders: shopOrders, CreatedAt: group.GetCreatedAt(), UpdatedAt: group.GetUpdatedAt()}
+	return &applicationbuyer.OrderGroupSummary{ID: group.GetId(), UserID: group.GetUserId(), Status: group.GetStatus(), Source: group.GetSource(), TotalItemAmount: group.GetTotalItemAmount(), TotalShippingAmount: group.GetTotalShippingAmount(), TotalPayAmount: group.GetTotalPayAmount(), Currency: group.GetCurrency(), ShopOrderCount: group.GetShopOrderCount(), ItemCount: group.GetItemCount(), PaymentDeadlineAt: group.GetPaymentDeadlineAt(), PaidAt: group.GetPaidAt(), ShopOrders: shopOrders, CreatedAt: group.GetCreatedAt(), UpdatedAt: group.GetUpdatedAt()}
 }
 
 func toOrderGroupDetail(group *orderv1.OrderGroupDetail) *applicationbuyer.OrderGroupDetail {
@@ -128,5 +128,5 @@ func toOrderGroupDetail(group *orderv1.OrderGroupDetail) *applicationbuyer.Order
 	for _, shopOrder := range group.GetShopOrders() {
 		shopOrders = append(shopOrders, toShopOrder(shopOrder))
 	}
-	return &applicationbuyer.OrderGroupDetail{ID: group.GetId(), UserID: group.GetUserId(), Status: group.GetStatus(), Source: group.GetSource(), TotalItemAmount: group.GetTotalItemAmount(), TotalShippingAmount: group.GetTotalShippingAmount(), TotalPayAmount: group.GetTotalPayAmount(), Currency: group.GetCurrency(), ShopOrderCount: group.GetShopOrderCount(), ItemCount: group.GetItemCount(), Address: toAddressSnapshot(group.GetAddress()), ShopOrders: shopOrders, CreatedAt: group.GetCreatedAt(), UpdatedAt: group.GetUpdatedAt()}
+	return &applicationbuyer.OrderGroupDetail{ID: group.GetId(), UserID: group.GetUserId(), Status: group.GetStatus(), Source: group.GetSource(), TotalItemAmount: group.GetTotalItemAmount(), TotalShippingAmount: group.GetTotalShippingAmount(), TotalPayAmount: group.GetTotalPayAmount(), Currency: group.GetCurrency(), ShopOrderCount: group.GetShopOrderCount(), ItemCount: group.GetItemCount(), PaymentDeadlineAt: group.GetPaymentDeadlineAt(), PaidAt: group.GetPaidAt(), Address: toAddressSnapshot(group.GetAddress()), ShopOrders: shopOrders, CreatedAt: group.GetCreatedAt(), UpdatedAt: group.GetUpdatedAt()}
 }

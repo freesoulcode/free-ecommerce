@@ -9,6 +9,7 @@ import (
 	servicecartgrpc "github.com/freesoulcode/free-ecommerce/backend/apis/buyer-api/internal/infrastructure/cartgrpc"
 	serviceconfig "github.com/freesoulcode/free-ecommerce/backend/apis/buyer-api/internal/infrastructure/config"
 	serviceordergrpc "github.com/freesoulcode/free-ecommerce/backend/apis/buyer-api/internal/infrastructure/ordergrpc"
+	servicepaymentgrpc "github.com/freesoulcode/free-ecommerce/backend/apis/buyer-api/internal/infrastructure/paymentgrpc"
 	serviceproductgrpc "github.com/freesoulcode/free-ecommerce/backend/apis/buyer-api/internal/infrastructure/productgrpc"
 	serviceusergrpc "github.com/freesoulcode/free-ecommerce/backend/apis/buyer-api/internal/infrastructure/usergrpc"
 	sharedlogger "github.com/freesoulcode/free-ecommerce/backend/pkg/logger"
@@ -66,6 +67,14 @@ func main() {
 		_ = orderServiceClient.Close()
 	}()
 
+	paymentServiceClient, err := servicepaymentgrpc.New(cfg.PaymentService.GRPCAddr)
+	if err != nil {
+		logger.Fatal("init payment service grpc client", zap.Error(err))
+	}
+	defer func() {
+		_ = paymentServiceClient.Close()
+	}()
+
 	registerBuyerService := applicationbuyer.NewRegisterBuyerService(userServiceClient, authServiceClient)
 	loginBuyerService := applicationbuyer.NewLoginBuyerService(authServiceClient, userServiceClient)
 	addressBuyerService := applicationbuyer.NewAddressBuyerService(userServiceClient)
@@ -76,6 +85,8 @@ func main() {
 	cartHandler := servicehttp.NewCartHandler(cartBuyerService)
 	orderBuyerService := applicationbuyer.NewOrderBuyerService(orderServiceClient)
 	orderHandler := servicehttp.NewOrderHandler(orderBuyerService)
+	paymentBuyerService := applicationbuyer.NewPaymentBuyerService(paymentServiceClient)
+	paymentHandler := servicehttp.NewPaymentHandler(paymentBuyerService)
 
 	router := servicehttp.NewRouter(servicehttp.RouterParams{
 		ServiceName:    cfg.ServiceName,
@@ -83,6 +94,7 @@ func main() {
 		ProductHandler: productHandler,
 		CartHandler:    cartHandler,
 		OrderHandler:   orderHandler,
+		PaymentHandler: paymentHandler,
 	})
 	logger.Info("starting http server",
 		zap.String("addr", cfg.HTTPAddr),
@@ -92,6 +104,7 @@ func main() {
 		zap.String("product_service_grpc_addr", cfg.ProductService.GRPCAddr),
 		zap.String("cart_service_grpc_addr", cfg.CartService.GRPCAddr),
 		zap.String("order_service_grpc_addr", cfg.OrderService.GRPCAddr),
+		zap.String("payment_service_grpc_addr", cfg.PaymentService.GRPCAddr),
 	)
 
 	if err := router.Run(cfg.HTTPAddr); err != nil {

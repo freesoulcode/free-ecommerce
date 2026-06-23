@@ -12,6 +12,8 @@ import (
 
 const fixedShippingAmount int64 = 800
 
+const defaultPaymentTimeout = 30 * time.Minute
+
 type Address struct {
 	ID            int64
 	UserID        int64
@@ -83,6 +85,7 @@ type SubmitOrderService struct {
 	idGenerator IDGenerator
 	addressSvc  AddressService
 	cartSvc     CartService
+	paymentTTL  time.Duration
 	now         func() time.Time
 }
 
@@ -94,11 +97,29 @@ type GetBuyerOrderGroupDetailService struct {
 	repo domainorder.Repository
 }
 
-func NewSubmitOrderService(repo domainorder.Repository, idGenerator IDGenerator, addressSvc AddressService, cartSvc CartService, now func() time.Time) *SubmitOrderService {
+type GetOrderGroupPaymentInfoService struct {
+	repo domainorder.Repository
+	now  func() time.Time
+}
+
+type MarkOrderGroupPaidService struct {
+	repo domainorder.Repository
+	now  func() time.Time
+}
+
+type CloseOrderGroupByPaymentTimeoutService struct {
+	repo domainorder.Repository
+	now  func() time.Time
+}
+
+func NewSubmitOrderService(repo domainorder.Repository, idGenerator IDGenerator, addressSvc AddressService, cartSvc CartService, paymentTTL time.Duration, now func() time.Time) *SubmitOrderService {
 	if now == nil {
 		now = time.Now
 	}
-	return &SubmitOrderService{repo: repo, idGenerator: idGenerator, addressSvc: addressSvc, cartSvc: cartSvc, now: now}
+	if paymentTTL <= 0 {
+		paymentTTL = defaultPaymentTimeout
+	}
+	return &SubmitOrderService{repo: repo, idGenerator: idGenerator, addressSvc: addressSvc, cartSvc: cartSvc, paymentTTL: paymentTTL, now: now}
 }
 
 func NewListBuyerOrderGroupsService(repo domainorder.Repository) *ListBuyerOrderGroupsService {
@@ -107,6 +128,27 @@ func NewListBuyerOrderGroupsService(repo domainorder.Repository) *ListBuyerOrder
 
 func NewGetBuyerOrderGroupDetailService(repo domainorder.Repository) *GetBuyerOrderGroupDetailService {
 	return &GetBuyerOrderGroupDetailService{repo: repo}
+}
+
+func NewGetOrderGroupPaymentInfoService(repo domainorder.Repository, now func() time.Time) *GetOrderGroupPaymentInfoService {
+	if now == nil {
+		now = time.Now
+	}
+	return &GetOrderGroupPaymentInfoService{repo: repo, now: now}
+}
+
+func NewMarkOrderGroupPaidService(repo domainorder.Repository, now func() time.Time) *MarkOrderGroupPaidService {
+	if now == nil {
+		now = time.Now
+	}
+	return &MarkOrderGroupPaidService{repo: repo, now: now}
+}
+
+func NewCloseOrderGroupByPaymentTimeoutService(repo domainorder.Repository, now func() time.Time) *CloseOrderGroupByPaymentTimeoutService {
+	if now == nil {
+		now = time.Now
+	}
+	return &CloseOrderGroupByPaymentTimeoutService{repo: repo, now: now}
 }
 
 func (s *SubmitOrderService) Execute(ctx context.Context, input SubmitOrderInput) (*domainorder.Group, error) {
@@ -148,12 +190,13 @@ func (s *SubmitOrderService) Execute(ctx context.Context, input SubmitOrderInput
 	}
 
 	group := &domainorder.Group{
-		ID:        groupID,
-		UserID:    input.UserID,
-		Status:    domainorder.StatusPendingPayment,
-		Source:    source,
-		CreatedAt: now,
-		UpdatedAt: now,
+		ID:                groupID,
+		UserID:            input.UserID,
+		Status:            domainorder.StatusPendingPayment,
+		Source:            source,
+		PaymentDeadlineAt: now.Add(s.paymentTTL),
+		CreatedAt:         now,
+		UpdatedAt:         now,
 		Address: &domainorder.AddressSnapshot{
 			ID:            addressSnapshotID,
 			OrderGroupID:  groupID,
@@ -289,6 +332,44 @@ func (s *GetBuyerOrderGroupDetailService) Execute(ctx context.Context, userID, o
 	}
 
 	return s.repo.GetBuyerOrderGroupDetail(ctx, userID, orderGroupID)
+}
+
+func (s *GetOrderGroupPaymentInfoService) Execute(ctx context.Context, userID, orderGroupID int64) (*domainorder.PaymentInfo, error) {
+	if userID <= 0 {
+		return nil, appErrors.InvalidArgument("user id is required")
+	}
+	if orderGroupID <= 0 {
+		return nil, appErrors.InvalidArgument("order group id is required")
+	}
+
+	info, err := s.repo.GetOrderGroupPaymentInfo(ctx, userID, orderGroupID)
+	if err != nil {
+		return nil, err
+	}
+	if info.Status == domainorder.StatusPendingPayment && !info.PaymentDeadlineAt.IsZero() && s.now().UTC().After(info.PaymentDeadlineAt) {
+		return s.repo.CloseOrderGroupByPaymentTimeout(ctx, userID, orderGroupID, s.now().UTC())
+	}
+	return info, nil
+}
+
+func (s *MarkOrderGroupPaidService) Execute(ctx context.Context, userID, orderGroupID int64) (*domainorder.PaymentInfo, error) {
+	if userID <= 0 {
+		return nil, appErrors.InvalidArgument("user id is required")
+	}
+	if orderGroupID <= 0 {
+		return nil, appErrors.InvalidArgument("order group id is required")
+	}
+	return s.repo.MarkOrderGroupPaid(ctx, userID, orderGroupID, s.now().UTC())
+}
+
+func (s *CloseOrderGroupByPaymentTimeoutService) Execute(ctx context.Context, userID, orderGroupID int64) (*domainorder.PaymentInfo, error) {
+	if userID <= 0 {
+		return nil, appErrors.InvalidArgument("user id is required")
+	}
+	if orderGroupID <= 0 {
+		return nil, appErrors.InvalidArgument("order group id is required")
+	}
+	return s.repo.CloseOrderGroupByPaymentTimeout(ctx, userID, orderGroupID, s.now().UTC())
 }
 
 func filterSubmitItems(items []*CartItem, cartItemIDs []int64) ([]*CartItem, error) {

@@ -59,6 +59,7 @@ type ShopOrderSummary struct {
 	PayAmount      int64
 	Currency       string
 	ItemCount      int32
+	PaidAt         int64
 	CreatedAt      int64
 	UpdatedAt      int64
 }
@@ -76,6 +77,7 @@ type ShopOrder struct {
 	Currency       string
 	ItemCount      int32
 	Items          []*OrderItem
+	PaidAt         int64
 	CreatedAt      int64
 	UpdatedAt      int64
 }
@@ -91,6 +93,8 @@ type OrderGroupSummary struct {
 	Currency            string
 	ShopOrderCount      int32
 	ItemCount           int32
+	PaymentDeadlineAt   int64
+	PaidAt              int64
 	ShopOrders          []*ShopOrderSummary
 	CreatedAt           int64
 	UpdatedAt           int64
@@ -107,6 +111,8 @@ type OrderGroupDetail struct {
 	Currency            string
 	ShopOrderCount      int32
 	ItemCount           int32
+	PaymentDeadlineAt   int64
+	PaidAt              int64
 	Address             *OrderAddressSnapshot
 	ShopOrders          []*ShopOrder
 	CreatedAt           int64

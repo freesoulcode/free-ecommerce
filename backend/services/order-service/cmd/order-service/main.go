@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"log"
 	"net"
+	"time"
 
 	sharedlogger "github.com/freesoulcode/free-ecommerce/backend/pkg/logger"
 	applicationorder "github.com/freesoulcode/free-ecommerce/backend/services/order-service/internal/application/order"
@@ -56,10 +57,14 @@ func main() {
 	defer func() { _ = cartClient.Close() }()
 
 	repo := servicepersistence.NewOrderRepository(db)
-	submitService := applicationorder.NewSubmitOrderService(repo, idGenerator, userClient, cartClient, nil)
+	paymentTTL := time.Duration(cfg.Payment.TimeoutMinutes) * time.Minute
+	submitService := applicationorder.NewSubmitOrderService(repo, idGenerator, userClient, cartClient, paymentTTL, nil)
 	listService := applicationorder.NewListBuyerOrderGroupsService(repo)
 	getService := applicationorder.NewGetBuyerOrderGroupDetailService(repo)
-	orderGRPCServer := servicegrpc.NewOrderServiceServer(submitService, listService, getService)
+	getPaymentInfoService := applicationorder.NewGetOrderGroupPaymentInfoService(repo, nil)
+	markPaidService := applicationorder.NewMarkOrderGroupPaidService(repo, nil)
+	closeTimeoutService := applicationorder.NewCloseOrderGroupByPaymentTimeoutService(repo, nil)
+	orderGRPCServer := servicegrpc.NewOrderServiceServer(submitService, listService, getService, getPaymentInfoService, markPaidService, closeTimeoutService)
 
 	grpcListener, err := net.Listen("tcp", cfg.GRPCAddr)
 	if err != nil {
@@ -82,6 +87,7 @@ func main() {
 		zap.String("grpc_addr", cfg.GRPCAddr),
 		zap.String("service", cfg.ServiceName),
 		zap.String("mysql_dsn", maskDSN(cfg.MySQL.DSN)),
+		zap.Int64("payment_timeout_minutes", cfg.Payment.TimeoutMinutes),
 		zap.String("user_service_grpc_addr", cfg.UserService.GRPCAddr),
 		zap.String("cart_service_grpc_addr", cfg.CartService.GRPCAddr),
 	)
