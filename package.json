@@ -3,11 +3,6 @@
   "version": "0.0.1",
   "private": true,
   "description": "free-ecommerce monorepo",
-  "scripts": {
-    "dev:buyer": "pnpm --filter buyer-web dev",
-    "build:buyer": "pnpm --filter buyer-web build",
-    "preview:buyer": "pnpm --filter buyer-web preview"
-  },
   "keywords": [],
   "author": "",
   "license": "ISC",
