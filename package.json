@@ -1,10 +1,12 @@
 {
   "name": "free-ecommerce",
   "version": "0.0.1",
-  "description": "",
-  "main": "index.js",
+  "private": true,
+  "description": "free-ecommerce monorepo",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "dev:buyer": "pnpm --filter buyer-web dev",
+    "build:buyer": "pnpm --filter buyer-web build",
+    "preview:buyer": "pnpm --filter buyer-web preview"
   },
   "keywords": [],
   "author": "",

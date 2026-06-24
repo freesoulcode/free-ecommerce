@@ -1,2 +1,7 @@
 /bin/
 /user-service
+node_modules/
+dist/
+.pnpm-store/
+.vite/
+pnpm-lock.yaml
