@@ -15,13 +15,15 @@ import (
 
 type PaymentServiceServer struct {
 	paymentv1.UnimplementedPaymentServiceServer
-	createService *applicationpayment.CreatePaymentOrderService
-	getService    *applicationpayment.GetPaymentOrderService
-	simulatePay   *applicationpayment.SimulatePayService
+	createService   *applicationpayment.CreatePaymentOrderService
+	getService      *applicationpayment.GetPaymentOrderService
+	simulatePay     *applicationpayment.SimulatePayService
+	listAdminOrders *applicationpayment.ListAdminPaymentOrdersService
+	getAdminOrder   *applicationpayment.GetAdminPaymentOrderService
 }
 
-func NewPaymentServiceServer(createService *applicationpayment.CreatePaymentOrderService, getService *applicationpayment.GetPaymentOrderService, simulatePay *applicationpayment.SimulatePayService) *PaymentServiceServer {
-	return &PaymentServiceServer{createService: createService, getService: getService, simulatePay: simulatePay}
+func NewPaymentServiceServer(createService *applicationpayment.CreatePaymentOrderService, getService *applicationpayment.GetPaymentOrderService, simulatePay *applicationpayment.SimulatePayService, listAdminOrders *applicationpayment.ListAdminPaymentOrdersService, getAdminOrder *applicationpayment.GetAdminPaymentOrderService) *PaymentServiceServer {
+	return &PaymentServiceServer{createService: createService, getService: getService, simulatePay: simulatePay, listAdminOrders: listAdminOrders, getAdminOrder: getAdminOrder}
 }
 
 func (s *PaymentServiceServer) CreatePaymentOrder(ctx context.Context, req *paymentv1.CreatePaymentOrderRequest) (*paymentv1.CreatePaymentOrderResponse, error) {
@@ -55,6 +57,39 @@ func (s *PaymentServiceServer) SimulatePay(ctx context.Context, req *paymentv1.S
 		return nil, toGRPCError(err)
 	}
 	return &paymentv1.SimulatePayResponse{PaymentOrder: toPaymentOrderPB(order)}, nil
+}
+
+func (s *PaymentServiceServer) ListAdminPaymentOrders(ctx context.Context, req *paymentv1.ListAdminPaymentOrdersRequest) (*paymentv1.ListAdminPaymentOrdersResponse, error) {
+	if req == nil {
+		return nil, status.Error(codes.InvalidArgument, "request is required")
+	}
+	result, err := s.listAdminOrders.Execute(ctx, applicationpayment.ListAdminPaymentOrdersInput{
+		Page:         req.GetPage(),
+		PageSize:     req.GetPageSize(),
+		Status:       req.GetStatus(),
+		UserID:       req.GetUserId(),
+		OrderGroupID: req.GetOrderGroupId(),
+		Channel:      req.GetChannel(),
+	})
+	if err != nil {
+		return nil, toGRPCError(err)
+	}
+	items := make([]*paymentv1.PaymentOrder, 0, len(result.PaymentOrders))
+	for _, item := range result.PaymentOrders {
+		items = append(items, toPaymentOrderPB(item))
+	}
+	return &paymentv1.ListAdminPaymentOrdersResponse{PaymentOrders: items, Total: result.Total, Page: result.Page, PageSize: result.PageSize}, nil
+}
+
+func (s *PaymentServiceServer) GetAdminPaymentOrder(ctx context.Context, req *paymentv1.GetAdminPaymentOrderRequest) (*paymentv1.GetAdminPaymentOrderResponse, error) {
+	if req == nil {
+		return nil, status.Error(codes.InvalidArgument, "request is required")
+	}
+	order, err := s.getAdminOrder.Execute(ctx, req.GetId())
+	if err != nil {
+		return nil, toGRPCError(err)
+	}
+	return &paymentv1.GetAdminPaymentOrderResponse{PaymentOrder: toPaymentOrderPB(order)}, nil
 }
 
 func toGRPCError(err error) error {

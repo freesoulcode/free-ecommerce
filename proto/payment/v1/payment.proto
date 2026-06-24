@@ -8,6 +8,8 @@ service PaymentService {
   rpc CreatePaymentOrder(CreatePaymentOrderRequest) returns (CreatePaymentOrderResponse);
   rpc GetPaymentOrderByOrderGroup(GetPaymentOrderByOrderGroupRequest) returns (GetPaymentOrderByOrderGroupResponse);
   rpc SimulatePay(SimulatePayRequest) returns (SimulatePayResponse);
+  rpc ListAdminPaymentOrders(ListAdminPaymentOrdersRequest) returns (ListAdminPaymentOrdersResponse);
+  rpc GetAdminPaymentOrder(GetAdminPaymentOrderRequest) returns (GetAdminPaymentOrderResponse);
 }
 
 message PaymentOrder {
@@ -49,5 +51,29 @@ message SimulatePayRequest {
 }
 
 message SimulatePayResponse {
+  PaymentOrder payment_order = 1;
+}
+
+message ListAdminPaymentOrdersRequest {
+  int32 page = 1;
+  int32 page_size = 2;
+  string status = 3;
+  int64 user_id = 4;
+  int64 order_group_id = 5;
+  string channel = 6;
+}
+
+message ListAdminPaymentOrdersResponse {
+  repeated PaymentOrder payment_orders = 1;
+  int64 total = 2;
+  int32 page = 3;
+  int32 page_size = 4;
+}
+
+message GetAdminPaymentOrderRequest {
+  int64 id = 1;
+}
+
+message GetAdminPaymentOrderResponse {
   PaymentOrder payment_order = 1;
 }

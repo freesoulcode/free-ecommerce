@@ -441,6 +441,246 @@ func (x *SimulatePayResponse) GetPaymentOrder() *PaymentOrder {
 	return nil
 }
 
+type ListAdminPaymentOrdersRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Page          int32                  `protobuf:"varint,1,opt,name=page,proto3" json:"page,omitempty"`
+	PageSize      int32                  `protobuf:"varint,2,opt,name=page_size,json=pageSize,proto3" json:"page_size,omitempty"`
+	Status        string                 `protobuf:"bytes,3,opt,name=status,proto3" json:"status,omitempty"`
+	UserId        int64                  `protobuf:"varint,4,opt,name=user_id,json=userId,proto3" json:"user_id,omitempty"`
+	OrderGroupId  int64                  `protobuf:"varint,5,opt,name=order_group_id,json=orderGroupId,proto3" json:"order_group_id,omitempty"`
+	Channel       string                 `protobuf:"bytes,6,opt,name=channel,proto3" json:"channel,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *ListAdminPaymentOrdersRequest) Reset() {
+	*x = ListAdminPaymentOrdersRequest{}
+	mi := &file_proto_payment_v1_payment_proto_msgTypes[7]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *ListAdminPaymentOrdersRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ListAdminPaymentOrdersRequest) ProtoMessage() {}
+
+func (x *ListAdminPaymentOrdersRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_proto_payment_v1_payment_proto_msgTypes[7]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use ListAdminPaymentOrdersRequest.ProtoReflect.Descriptor instead.
+func (*ListAdminPaymentOrdersRequest) Descriptor() ([]byte, []int) {
+	return file_proto_payment_v1_payment_proto_rawDescGZIP(), []int{7}
+}
+
+func (x *ListAdminPaymentOrdersRequest) GetPage() int32 {
+	if x != nil {
+		return x.Page
+	}
+	return 0
+}
+
+func (x *ListAdminPaymentOrdersRequest) GetPageSize() int32 {
+	if x != nil {
+		return x.PageSize
+	}
+	return 0
+}
+
+func (x *ListAdminPaymentOrdersRequest) GetStatus() string {
+	if x != nil {
+		return x.Status
+	}
+	return ""
+}
+
+func (x *ListAdminPaymentOrdersRequest) GetUserId() int64 {
+	if x != nil {
+		return x.UserId
+	}
+	return 0
+}
+
+func (x *ListAdminPaymentOrdersRequest) GetOrderGroupId() int64 {
+	if x != nil {
+		return x.OrderGroupId
+	}
+	return 0
+}
+
+func (x *ListAdminPaymentOrdersRequest) GetChannel() string {
+	if x != nil {
+		return x.Channel
+	}
+	return ""
+}
+
+type ListAdminPaymentOrdersResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	PaymentOrders []*PaymentOrder        `protobuf:"bytes,1,rep,name=payment_orders,json=paymentOrders,proto3" json:"payment_orders,omitempty"`
+	Total         int64                  `protobuf:"varint,2,opt,name=total,proto3" json:"total,omitempty"`
+	Page          int32                  `protobuf:"varint,3,opt,name=page,proto3" json:"page,omitempty"`
+	PageSize      int32                  `protobuf:"varint,4,opt,name=page_size,json=pageSize,proto3" json:"page_size,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *ListAdminPaymentOrdersResponse) Reset() {
+	*x = ListAdminPaymentOrdersResponse{}
+	mi := &file_proto_payment_v1_payment_proto_msgTypes[8]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *ListAdminPaymentOrdersResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ListAdminPaymentOrdersResponse) ProtoMessage() {}
+
+func (x *ListAdminPaymentOrdersResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_proto_payment_v1_payment_proto_msgTypes[8]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use ListAdminPaymentOrdersResponse.ProtoReflect.Descriptor instead.
+func (*ListAdminPaymentOrdersResponse) Descriptor() ([]byte, []int) {
+	return file_proto_payment_v1_payment_proto_rawDescGZIP(), []int{8}
+}
+
+func (x *ListAdminPaymentOrdersResponse) GetPaymentOrders() []*PaymentOrder {
+	if x != nil {
+		return x.PaymentOrders
+	}
+	return nil
+}
+
+func (x *ListAdminPaymentOrdersResponse) GetTotal() int64 {
+	if x != nil {
+		return x.Total
+	}
+	return 0
+}
+
+func (x *ListAdminPaymentOrdersResponse) GetPage() int32 {
+	if x != nil {
+		return x.Page
+	}
+	return 0
+}
+
+func (x *ListAdminPaymentOrdersResponse) GetPageSize() int32 {
+	if x != nil {
+		return x.PageSize
+	}
+	return 0
+}
+
+type GetAdminPaymentOrderRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Id            int64                  `protobuf:"varint,1,opt,name=id,proto3" json:"id,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *GetAdminPaymentOrderRequest) Reset() {
+	*x = GetAdminPaymentOrderRequest{}
+	mi := &file_proto_payment_v1_payment_proto_msgTypes[9]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *GetAdminPaymentOrderRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*GetAdminPaymentOrderRequest) ProtoMessage() {}
+
+func (x *GetAdminPaymentOrderRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_proto_payment_v1_payment_proto_msgTypes[9]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use GetAdminPaymentOrderRequest.ProtoReflect.Descriptor instead.
+func (*GetAdminPaymentOrderRequest) Descriptor() ([]byte, []int) {
+	return file_proto_payment_v1_payment_proto_rawDescGZIP(), []int{9}
+}
+
+func (x *GetAdminPaymentOrderRequest) GetId() int64 {
+	if x != nil {
+		return x.Id
+	}
+	return 0
+}
+
+type GetAdminPaymentOrderResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	PaymentOrder  *PaymentOrder          `protobuf:"bytes,1,opt,name=payment_order,json=paymentOrder,proto3" json:"payment_order,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *GetAdminPaymentOrderResponse) Reset() {
+	*x = GetAdminPaymentOrderResponse{}
+	mi := &file_proto_payment_v1_payment_proto_msgTypes[10]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *GetAdminPaymentOrderResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*GetAdminPaymentOrderResponse) ProtoMessage() {}
+
+func (x *GetAdminPaymentOrderResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_proto_payment_v1_payment_proto_msgTypes[10]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use GetAdminPaymentOrderResponse.ProtoReflect.Descriptor instead.
+func (*GetAdminPaymentOrderResponse) Descriptor() ([]byte, []int) {
+	return file_proto_payment_v1_payment_proto_rawDescGZIP(), []int{10}
+}
+
+func (x *GetAdminPaymentOrderResponse) GetPaymentOrder() *PaymentOrder {
+	if x != nil {
+		return x.PaymentOrder
+	}
+	return nil
+}
+
 var File_proto_payment_v1_payment_proto protoreflect.FileDescriptor
 
 const file_proto_payment_v1_payment_proto_rawDesc = "" +
@@ -478,11 +718,29 @@ const file_proto_payment_v1_payment_proto_rawDesc = "" +
 	"\auser_id\x18\x01 \x01(\x03R\x06userId\x12$\n" +
 	"\x0eorder_group_id\x18\x02 \x01(\x03R\forderGroupId\"T\n" +
 	"\x13SimulatePayResponse\x12=\n" +
-	"\rpayment_order\x18\x01 \x01(\v2\x18.payment.v1.PaymentOrderR\fpaymentOrder2\xc5\x02\n" +
+	"\rpayment_order\x18\x01 \x01(\v2\x18.payment.v1.PaymentOrderR\fpaymentOrder\"\xc1\x01\n" +
+	"\x1dListAdminPaymentOrdersRequest\x12\x12\n" +
+	"\x04page\x18\x01 \x01(\x05R\x04page\x12\x1b\n" +
+	"\tpage_size\x18\x02 \x01(\x05R\bpageSize\x12\x16\n" +
+	"\x06status\x18\x03 \x01(\tR\x06status\x12\x17\n" +
+	"\auser_id\x18\x04 \x01(\x03R\x06userId\x12$\n" +
+	"\x0eorder_group_id\x18\x05 \x01(\x03R\forderGroupId\x12\x18\n" +
+	"\achannel\x18\x06 \x01(\tR\achannel\"\xa8\x01\n" +
+	"\x1eListAdminPaymentOrdersResponse\x12?\n" +
+	"\x0epayment_orders\x18\x01 \x03(\v2\x18.payment.v1.PaymentOrderR\rpaymentOrders\x12\x14\n" +
+	"\x05total\x18\x02 \x01(\x03R\x05total\x12\x12\n" +
+	"\x04page\x18\x03 \x01(\x05R\x04page\x12\x1b\n" +
+	"\tpage_size\x18\x04 \x01(\x05R\bpageSize\"-\n" +
+	"\x1bGetAdminPaymentOrderRequest\x12\x0e\n" +
+	"\x02id\x18\x01 \x01(\x03R\x02id\"]\n" +
+	"\x1cGetAdminPaymentOrderResponse\x12=\n" +
+	"\rpayment_order\x18\x01 \x01(\v2\x18.payment.v1.PaymentOrderR\fpaymentOrder2\xa1\x04\n" +
 	"\x0ePaymentService\x12c\n" +
 	"\x12CreatePaymentOrder\x12%.payment.v1.CreatePaymentOrderRequest\x1a&.payment.v1.CreatePaymentOrderResponse\x12~\n" +
 	"\x1bGetPaymentOrderByOrderGroup\x12..payment.v1.GetPaymentOrderByOrderGroupRequest\x1a/.payment.v1.GetPaymentOrderByOrderGroupResponse\x12N\n" +
-	"\vSimulatePay\x12\x1e.payment.v1.SimulatePayRequest\x1a\x1f.payment.v1.SimulatePayResponseBJZHgithub.com/freesoulcode/free-ecommerce/gen/go/proto/payment/v1;paymentv1b\x06proto3"
+	"\vSimulatePay\x12\x1e.payment.v1.SimulatePayRequest\x1a\x1f.payment.v1.SimulatePayResponse\x12o\n" +
+	"\x16ListAdminPaymentOrders\x12).payment.v1.ListAdminPaymentOrdersRequest\x1a*.payment.v1.ListAdminPaymentOrdersResponse\x12i\n" +
+	"\x14GetAdminPaymentOrder\x12'.payment.v1.GetAdminPaymentOrderRequest\x1a(.payment.v1.GetAdminPaymentOrderResponseBJZHgithub.com/freesoulcode/free-ecommerce/gen/go/proto/payment/v1;paymentv1b\x06proto3"
 
 var (
 	file_proto_payment_v1_payment_proto_rawDescOnce sync.Once
@@ -496,7 +754,7 @@ func file_proto_payment_v1_payment_proto_rawDescGZIP() []byte {
 	return file_proto_payment_v1_payment_proto_rawDescData
 }
 
-var file_proto_payment_v1_payment_proto_msgTypes = make([]protoimpl.MessageInfo, 7)
+var file_proto_payment_v1_payment_proto_msgTypes = make([]protoimpl.MessageInfo, 11)
 var file_proto_payment_v1_payment_proto_goTypes = []any{
 	(*PaymentOrder)(nil),                        // 0: payment.v1.PaymentOrder
 	(*CreatePaymentOrderRequest)(nil),           // 1: payment.v1.CreatePaymentOrderRequest
@@ -505,22 +763,32 @@ var file_proto_payment_v1_payment_proto_goTypes = []any{
 	(*GetPaymentOrderByOrderGroupResponse)(nil), // 4: payment.v1.GetPaymentOrderByOrderGroupResponse
 	(*SimulatePayRequest)(nil),                  // 5: payment.v1.SimulatePayRequest
 	(*SimulatePayResponse)(nil),                 // 6: payment.v1.SimulatePayResponse
+	(*ListAdminPaymentOrdersRequest)(nil),       // 7: payment.v1.ListAdminPaymentOrdersRequest
+	(*ListAdminPaymentOrdersResponse)(nil),      // 8: payment.v1.ListAdminPaymentOrdersResponse
+	(*GetAdminPaymentOrderRequest)(nil),         // 9: payment.v1.GetAdminPaymentOrderRequest
+	(*GetAdminPaymentOrderResponse)(nil),        // 10: payment.v1.GetAdminPaymentOrderResponse
 }
 var file_proto_payment_v1_payment_proto_depIdxs = []int32{
-	0, // 0: payment.v1.CreatePaymentOrderResponse.payment_order:type_name -> payment.v1.PaymentOrder
-	0, // 1: payment.v1.GetPaymentOrderByOrderGroupResponse.payment_order:type_name -> payment.v1.PaymentOrder
-	0, // 2: payment.v1.SimulatePayResponse.payment_order:type_name -> payment.v1.PaymentOrder
-	1, // 3: payment.v1.PaymentService.CreatePaymentOrder:input_type -> payment.v1.CreatePaymentOrderRequest
-	3, // 4: payment.v1.PaymentService.GetPaymentOrderByOrderGroup:input_type -> payment.v1.GetPaymentOrderByOrderGroupRequest
-	5, // 5: payment.v1.PaymentService.SimulatePay:input_type -> payment.v1.SimulatePayRequest
-	2, // 6: payment.v1.PaymentService.CreatePaymentOrder:output_type -> payment.v1.CreatePaymentOrderResponse
-	4, // 7: payment.v1.PaymentService.GetPaymentOrderByOrderGroup:output_type -> payment.v1.GetPaymentOrderByOrderGroupResponse
-	6, // 8: payment.v1.PaymentService.SimulatePay:output_type -> payment.v1.SimulatePayResponse
-	6, // [6:9] is the sub-list for method output_type
-	3, // [3:6] is the sub-list for method input_type
-	3, // [3:3] is the sub-list for extension type_name
-	3, // [3:3] is the sub-list for extension extendee
-	0, // [0:3] is the sub-list for field type_name
+	0,  // 0: payment.v1.CreatePaymentOrderResponse.payment_order:type_name -> payment.v1.PaymentOrder
+	0,  // 1: payment.v1.GetPaymentOrderByOrderGroupResponse.payment_order:type_name -> payment.v1.PaymentOrder
+	0,  // 2: payment.v1.SimulatePayResponse.payment_order:type_name -> payment.v1.PaymentOrder
+	0,  // 3: payment.v1.ListAdminPaymentOrdersResponse.payment_orders:type_name -> payment.v1.PaymentOrder
+	0,  // 4: payment.v1.GetAdminPaymentOrderResponse.payment_order:type_name -> payment.v1.PaymentOrder
+	1,  // 5: payment.v1.PaymentService.CreatePaymentOrder:input_type -> payment.v1.CreatePaymentOrderRequest
+	3,  // 6: payment.v1.PaymentService.GetPaymentOrderByOrderGroup:input_type -> payment.v1.GetPaymentOrderByOrderGroupRequest
+	5,  // 7: payment.v1.PaymentService.SimulatePay:input_type -> payment.v1.SimulatePayRequest
+	7,  // 8: payment.v1.PaymentService.ListAdminPaymentOrders:input_type -> payment.v1.ListAdminPaymentOrdersRequest
+	9,  // 9: payment.v1.PaymentService.GetAdminPaymentOrder:input_type -> payment.v1.GetAdminPaymentOrderRequest
+	2,  // 10: payment.v1.PaymentService.CreatePaymentOrder:output_type -> payment.v1.CreatePaymentOrderResponse
+	4,  // 11: payment.v1.PaymentService.GetPaymentOrderByOrderGroup:output_type -> payment.v1.GetPaymentOrderByOrderGroupResponse
+	6,  // 12: payment.v1.PaymentService.SimulatePay:output_type -> payment.v1.SimulatePayResponse
+	8,  // 13: payment.v1.PaymentService.ListAdminPaymentOrders:output_type -> payment.v1.ListAdminPaymentOrdersResponse
+	10, // 14: payment.v1.PaymentService.GetAdminPaymentOrder:output_type -> payment.v1.GetAdminPaymentOrderResponse
+	10, // [10:15] is the sub-list for method output_type
+	5,  // [5:10] is the sub-list for method input_type
+	5,  // [5:5] is the sub-list for extension type_name
+	5,  // [5:5] is the sub-list for extension extendee
+	0,  // [0:5] is the sub-list for field type_name
 }
 
 func init() { file_proto_payment_v1_payment_proto_init() }
@@ -534,7 +802,7 @@ func file_proto_payment_v1_payment_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_proto_payment_v1_payment_proto_rawDesc), len(file_proto_payment_v1_payment_proto_rawDesc)),
 			NumEnums:      0,
-			NumMessages:   7,
+			NumMessages:   11,
 			NumExtensions: 0,
 			NumServices:   1,
 		},

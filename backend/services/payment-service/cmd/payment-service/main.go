@@ -49,7 +49,9 @@ func main() {
 	createService := applicationpayment.NewCreatePaymentOrderService(repo, idGenerator, orderClient, nil)
 	getService := applicationpayment.NewGetPaymentOrderService(repo, idGenerator, orderClient, nil)
 	simulatePayService := applicationpayment.NewSimulatePayService(repo, idGenerator, orderClient, nil)
-	paymentGRPCServer := servicegrpc.NewPaymentServiceServer(createService, getService, simulatePayService)
+	listAdminOrdersService := applicationpayment.NewListAdminPaymentOrdersService(repo)
+	getAdminOrderService := applicationpayment.NewGetAdminPaymentOrderService(repo)
+	paymentGRPCServer := servicegrpc.NewPaymentServiceServer(createService, getService, simulatePayService, listAdminOrdersService, getAdminOrderService)
 
 	grpcListener, err := net.Listen("tcp", cfg.GRPCAddr)
 	if err != nil {

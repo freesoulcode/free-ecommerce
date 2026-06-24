@@ -7,6 +7,7 @@ import (
 	servicehttp "github.com/freesoulcode/free-ecommerce/backend/apis/admin-api/internal/handler/http"
 	serviceconfig "github.com/freesoulcode/free-ecommerce/backend/apis/admin-api/internal/infrastructure/config"
 	serviceordergrpc "github.com/freesoulcode/free-ecommerce/backend/apis/admin-api/internal/infrastructure/ordergrpc"
+	servicepaymentgrpc "github.com/freesoulcode/free-ecommerce/backend/apis/admin-api/internal/infrastructure/paymentgrpc"
 	serviceproductgrpc "github.com/freesoulcode/free-ecommerce/backend/apis/admin-api/internal/infrastructure/productgrpc"
 	serviceusergrpc "github.com/freesoulcode/free-ecommerce/backend/apis/admin-api/internal/infrastructure/usergrpc"
 	sharedlogger "github.com/freesoulcode/free-ecommerce/backend/pkg/logger"
@@ -48,6 +49,14 @@ func main() {
 		_ = productServiceClient.Close()
 	}()
 
+	paymentServiceClient, err := servicepaymentgrpc.New(cfg.PaymentService.GRPCAddr)
+	if err != nil {
+		logger.Fatal("init payment service grpc client", zap.Error(err))
+	}
+	defer func() {
+		_ = paymentServiceClient.Close()
+	}()
+
 	adminUserService := applicationadmin.NewUserAdminService(userServiceClient)
 	adminUserHandler := servicehttp.NewAdminUserHandler(adminUserService)
 	adminOrderGroupService := applicationadmin.NewOrderGroupAdminService(orderServiceClient)
@@ -56,6 +65,8 @@ func main() {
 	adminShopOrderHandler := servicehttp.NewAdminShopOrderHandler(adminShopOrderService)
 	adminProductService := applicationadmin.NewProductAdminService(productServiceClient)
 	adminProductHandler := servicehttp.NewAdminProductHandler(adminProductService)
+	adminPaymentService := applicationadmin.NewPaymentAdminService(paymentServiceClient, orderServiceClient)
+	adminPaymentHandler := servicehttp.NewAdminPaymentHandler(adminPaymentService)
 
 	router := servicehttp.NewRouter(servicehttp.RouterParams{
 		ServiceName:            cfg.ServiceName,
@@ -63,6 +74,7 @@ func main() {
 		AdminOrderGroupHandler: adminOrderGroupHandler,
 		AdminShopOrderHandler:  adminShopOrderHandler,
 		AdminProductHandler:    adminProductHandler,
+		AdminPaymentHandler:    adminPaymentHandler,
 	})
 
 	logger.Info("starting http server",
@@ -71,6 +83,7 @@ func main() {
 		zap.String("user_service_grpc_addr", cfg.UserService.GRPCAddr),
 		zap.String("order_service_grpc_addr", cfg.OrderService.GRPCAddr),
 		zap.String("product_service_grpc_addr", cfg.ProductService.GRPCAddr),
+		zap.String("payment_service_grpc_addr", cfg.PaymentService.GRPCAddr),
 	)
 
 	if err := router.Run(cfg.HTTPAddr); err != nil {

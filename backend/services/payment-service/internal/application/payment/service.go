@@ -31,6 +31,22 @@ type CreatePaymentOrderInput struct {
 	Channel      string
 }
 
+type ListAdminPaymentOrdersInput struct {
+	Page         int32
+	PageSize     int32
+	Status       string
+	UserID       int64
+	OrderGroupID int64
+	Channel      string
+}
+
+type ListAdminPaymentOrdersResult struct {
+	PaymentOrders []*domainpayment.Order
+	Total         int64
+	Page          int32
+	PageSize      int32
+}
+
 type CreatePaymentOrderService struct {
 	repo        domainpayment.Repository
 	idGenerator IDGenerator
@@ -52,6 +68,14 @@ type SimulatePayService struct {
 	now         func() time.Time
 }
 
+type ListAdminPaymentOrdersService struct {
+	repo domainpayment.Repository
+}
+
+type GetAdminPaymentOrderService struct {
+	repo domainpayment.Repository
+}
+
 func NewCreatePaymentOrderService(repo domainpayment.Repository, idGenerator IDGenerator, orderSvc OrderService, now func() time.Time) *CreatePaymentOrderService {
 	if now == nil {
 		now = time.Now
@@ -71,6 +95,14 @@ func NewSimulatePayService(repo domainpayment.Repository, idGenerator IDGenerato
 		now = time.Now
 	}
 	return &SimulatePayService{repo: repo, idGenerator: idGenerator, orderSvc: orderSvc, now: now}
+}
+
+func NewListAdminPaymentOrdersService(repo domainpayment.Repository) *ListAdminPaymentOrdersService {
+	return &ListAdminPaymentOrdersService{repo: repo}
+}
+
+func NewGetAdminPaymentOrderService(repo domainpayment.Repository) *GetAdminPaymentOrderService {
+	return &GetAdminPaymentOrderService{repo: repo}
 }
 
 func (s *CreatePaymentOrderService) Execute(ctx context.Context, input CreatePaymentOrderInput) (*domainpayment.Order, error) {
@@ -214,6 +246,46 @@ func (s *SimulatePayService) Execute(ctx context.Context, userID, orderGroupID i
 		return nil, err
 	}
 	return s.repo.MarkPaid(ctx, userID, orderGroupID, paidAtOrNow(marked.PaidAt, s.now().UTC()))
+}
+
+func (s *ListAdminPaymentOrdersService) Execute(ctx context.Context, input ListAdminPaymentOrdersInput) (*ListAdminPaymentOrdersResult, error) {
+	page := input.Page
+	if page <= 0 {
+		page = 1
+	}
+	pageSize := input.PageSize
+	if pageSize <= 0 {
+		pageSize = 20
+	}
+	if pageSize > 100 {
+		pageSize = 100
+	}
+	if input.UserID < 0 {
+		return nil, appErrors.InvalidArgument("user id is invalid")
+	}
+	if input.OrderGroupID < 0 {
+		return nil, appErrors.InvalidArgument("order group id is invalid")
+	}
+
+	items, total, err := s.repo.ListAdminPaymentOrders(ctx, domainpayment.ListAdminPaymentOrdersQuery{
+		Page:         page,
+		PageSize:     pageSize,
+		Status:       strings.TrimSpace(input.Status),
+		UserID:       input.UserID,
+		OrderGroupID: input.OrderGroupID,
+		Channel:      strings.TrimSpace(input.Channel),
+	})
+	if err != nil {
+		return nil, err
+	}
+	return &ListAdminPaymentOrdersResult{PaymentOrders: items, Total: total, Page: page, PageSize: pageSize}, nil
+}
+
+func (s *GetAdminPaymentOrderService) Execute(ctx context.Context, id int64) (*domainpayment.Order, error) {
+	if id <= 0 {
+		return nil, appErrors.InvalidArgument("payment order id is required")
+	}
+	return s.repo.GetByID(ctx, id)
 }
 
 func (s *GetPaymentOrderService) rebuildPaidOrder(ctx context.Context, info *OrderPaymentInfo) (*domainpayment.Order, error) {

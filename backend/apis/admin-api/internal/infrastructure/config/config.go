@@ -17,6 +17,7 @@ type Config struct {
 	UserService    UserServiceConfig
 	OrderService   OrderServiceConfig
 	ProductService ProductServiceConfig
+	PaymentService PaymentServiceConfig
 }
 
 type UserServiceConfig struct {
@@ -28,6 +29,10 @@ type OrderServiceConfig struct {
 }
 
 type ProductServiceConfig struct {
+	GRPCAddr string
+}
+
+type PaymentServiceConfig struct {
 	GRPCAddr string
 }
 
@@ -45,6 +50,9 @@ func Load() Config {
 		},
 		ProductService: ProductServiceConfig{
 			GRPCAddr: getEnv("ADMIN_API_PRODUCT_SERVICE_GRPC_ADDR", "127.0.0.1:9083"),
+		},
+		PaymentService: PaymentServiceConfig{
+			GRPCAddr: getEnv("ADMIN_API_PAYMENT_SERVICE_GRPC_ADDR", "127.0.0.1:9086"),
 		},
 	}
 }

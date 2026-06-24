@@ -14,6 +14,7 @@ type RouterParams struct {
 	AdminOrderGroupHandler *AdminOrderGroupHandler
 	AdminShopOrderHandler  *AdminShopOrderHandler
 	AdminProductHandler    *AdminProductHandler
+	AdminPaymentHandler    *AdminPaymentHandler
 }
 
 func NewRouter(params RouterParams) *gin.Engine {
@@ -48,6 +49,9 @@ func NewRouter(params RouterParams) *gin.Engine {
 	}
 	if params.AdminProductHandler != nil {
 		params.AdminProductHandler.RegisterRoutes(router)
+	}
+	if params.AdminPaymentHandler != nil {
+		params.AdminPaymentHandler.RegisterRoutes(router)
 	}
 
 	return router

@@ -22,6 +22,8 @@ const (
 	PaymentService_CreatePaymentOrder_FullMethodName          = "/payment.v1.PaymentService/CreatePaymentOrder"
 	PaymentService_GetPaymentOrderByOrderGroup_FullMethodName = "/payment.v1.PaymentService/GetPaymentOrderByOrderGroup"
 	PaymentService_SimulatePay_FullMethodName                 = "/payment.v1.PaymentService/SimulatePay"
+	PaymentService_ListAdminPaymentOrders_FullMethodName      = "/payment.v1.PaymentService/ListAdminPaymentOrders"
+	PaymentService_GetAdminPaymentOrder_FullMethodName        = "/payment.v1.PaymentService/GetAdminPaymentOrder"
 )
 
 // PaymentServiceClient is the client API for PaymentService service.
@@ -31,6 +33,8 @@ type PaymentServiceClient interface {
 	CreatePaymentOrder(ctx context.Context, in *CreatePaymentOrderRequest, opts ...grpc.CallOption) (*CreatePaymentOrderResponse, error)
 	GetPaymentOrderByOrderGroup(ctx context.Context, in *GetPaymentOrderByOrderGroupRequest, opts ...grpc.CallOption) (*GetPaymentOrderByOrderGroupResponse, error)
 	SimulatePay(ctx context.Context, in *SimulatePayRequest, opts ...grpc.CallOption) (*SimulatePayResponse, error)
+	ListAdminPaymentOrders(ctx context.Context, in *ListAdminPaymentOrdersRequest, opts ...grpc.CallOption) (*ListAdminPaymentOrdersResponse, error)
+	GetAdminPaymentOrder(ctx context.Context, in *GetAdminPaymentOrderRequest, opts ...grpc.CallOption) (*GetAdminPaymentOrderResponse, error)
 }
 
 type paymentServiceClient struct {
@@ -71,6 +75,26 @@ func (c *paymentServiceClient) SimulatePay(ctx context.Context, in *SimulatePayR
 	return out, nil
 }
 
+func (c *paymentServiceClient) ListAdminPaymentOrders(ctx context.Context, in *ListAdminPaymentOrdersRequest, opts ...grpc.CallOption) (*ListAdminPaymentOrdersResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(ListAdminPaymentOrdersResponse)
+	err := c.cc.Invoke(ctx, PaymentService_ListAdminPaymentOrders_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *paymentServiceClient) GetAdminPaymentOrder(ctx context.Context, in *GetAdminPaymentOrderRequest, opts ...grpc.CallOption) (*GetAdminPaymentOrderResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(GetAdminPaymentOrderResponse)
+	err := c.cc.Invoke(ctx, PaymentService_GetAdminPaymentOrder_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // PaymentServiceServer is the server API for PaymentService service.
 // All implementations must embed UnimplementedPaymentServiceServer
 // for forward compatibility.
@@ -78,6 +102,8 @@ type PaymentServiceServer interface {
 	CreatePaymentOrder(context.Context, *CreatePaymentOrderRequest) (*CreatePaymentOrderResponse, error)
 	GetPaymentOrderByOrderGroup(context.Context, *GetPaymentOrderByOrderGroupRequest) (*GetPaymentOrderByOrderGroupResponse, error)
 	SimulatePay(context.Context, *SimulatePayRequest) (*SimulatePayResponse, error)
+	ListAdminPaymentOrders(context.Context, *ListAdminPaymentOrdersRequest) (*ListAdminPaymentOrdersResponse, error)
+	GetAdminPaymentOrder(context.Context, *GetAdminPaymentOrderRequest) (*GetAdminPaymentOrderResponse, error)
 	mustEmbedUnimplementedPaymentServiceServer()
 }
 
@@ -96,6 +122,12 @@ func (UnimplementedPaymentServiceServer) GetPaymentOrderByOrderGroup(context.Con
 }
 func (UnimplementedPaymentServiceServer) SimulatePay(context.Context, *SimulatePayRequest) (*SimulatePayResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method SimulatePay not implemented")
+}
+func (UnimplementedPaymentServiceServer) ListAdminPaymentOrders(context.Context, *ListAdminPaymentOrdersRequest) (*ListAdminPaymentOrdersResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method ListAdminPaymentOrders not implemented")
+}
+func (UnimplementedPaymentServiceServer) GetAdminPaymentOrder(context.Context, *GetAdminPaymentOrderRequest) (*GetAdminPaymentOrderResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method GetAdminPaymentOrder not implemented")
 }
 func (UnimplementedPaymentServiceServer) mustEmbedUnimplementedPaymentServiceServer() {}
 func (UnimplementedPaymentServiceServer) testEmbeddedByValue()                        {}
@@ -172,6 +204,42 @@ func _PaymentService_SimulatePay_Handler(srv interface{}, ctx context.Context, d
 	return interceptor(ctx, in, info, handler)
 }
 
+func _PaymentService_ListAdminPaymentOrders_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ListAdminPaymentOrdersRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(PaymentServiceServer).ListAdminPaymentOrders(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: PaymentService_ListAdminPaymentOrders_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(PaymentServiceServer).ListAdminPaymentOrders(ctx, req.(*ListAdminPaymentOrdersRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _PaymentService_GetAdminPaymentOrder_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetAdminPaymentOrderRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(PaymentServiceServer).GetAdminPaymentOrder(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: PaymentService_GetAdminPaymentOrder_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(PaymentServiceServer).GetAdminPaymentOrder(ctx, req.(*GetAdminPaymentOrderRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // PaymentService_ServiceDesc is the grpc.ServiceDesc for PaymentService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -190,6 +258,14 @@ var PaymentService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "SimulatePay",
 			Handler:    _PaymentService_SimulatePay_Handler,
+		},
+		{
+			MethodName: "ListAdminPaymentOrders",
+			Handler:    _PaymentService_ListAdminPaymentOrders_Handler,
+		},
+		{
+			MethodName: "GetAdminPaymentOrder",
+			Handler:    _PaymentService_GetAdminPaymentOrder_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

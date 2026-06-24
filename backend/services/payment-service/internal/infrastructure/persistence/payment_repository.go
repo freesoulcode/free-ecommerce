@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"strings"
 	"time"
 
 	appErrors "github.com/freesoulcode/free-ecommerce/backend/pkg/errors"
@@ -40,6 +41,49 @@ func (r *PaymentRepository) FindByOrderGroup(ctx context.Context, userID, orderG
 		return nil, fmt.Errorf("find payment order: %w", err)
 	}
 	return toDomainOrder(model), nil
+}
+
+func (r *PaymentRepository) GetByID(ctx context.Context, id int64) (*domainpayment.Order, error) {
+	var model PaymentOrderModel
+	if err := r.db.WithContext(ctx).Where("id = ?", id).First(&model).Error; err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return nil, appErrors.NotFound("payment order not found")
+		}
+		return nil, fmt.Errorf("find payment order by id: %w", err)
+	}
+	return toDomainOrder(model), nil
+}
+
+func (r *PaymentRepository) ListAdminPaymentOrders(ctx context.Context, query domainpayment.ListAdminPaymentOrdersQuery) ([]*domainpayment.Order, int64, error) {
+	db := r.db.WithContext(ctx).Model(&PaymentOrderModel{})
+	if status := strings.TrimSpace(query.Status); status != "" {
+		db = db.Where("status = ?", status)
+	}
+	if channel := strings.TrimSpace(query.Channel); channel != "" {
+		db = db.Where("channel = ?", channel)
+	}
+	if query.UserID > 0 {
+		db = db.Where("user_id = ?", query.UserID)
+	}
+	if query.OrderGroupID > 0 {
+		db = db.Where("order_group_id = ?", query.OrderGroupID)
+	}
+
+	var total int64
+	if err := db.Count(&total).Error; err != nil {
+		return nil, 0, fmt.Errorf("count admin payment orders: %w", err)
+	}
+
+	var models []PaymentOrderModel
+	offset := (query.Page - 1) * query.PageSize
+	if err := db.Order("created_at DESC, id DESC").Limit(int(query.PageSize)).Offset(int(offset)).Find(&models).Error; err != nil {
+		return nil, 0, fmt.Errorf("list admin payment orders: %w", err)
+	}
+	items := make([]*domainpayment.Order, 0, len(models))
+	for _, model := range models {
+		items = append(items, toDomainOrder(model))
+	}
+	return items, total, nil
 }
 
 func (r *PaymentRepository) Create(ctx context.Context, order *domainpayment.Order) error {
