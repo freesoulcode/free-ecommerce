@@ -19,10 +19,20 @@ type ListMerchantShopOrdersQuery struct {
 	Status   string
 }
 
+type ListAdminOrderGroupsQuery struct {
+	UserID   int64
+	ShopID   int64
+	Page     int32
+	PageSize int32
+	Status   string
+}
+
 type Repository interface {
 	SubmitOrder(ctx context.Context, group *Group) error
 	ListBuyerOrderGroups(ctx context.Context, query ListBuyerOrderGroupsQuery) ([]*GroupSummary, int64, error)
 	GetBuyerOrderGroupDetail(ctx context.Context, userID, orderGroupID int64) (*Group, error)
+	ListAdminOrderGroups(ctx context.Context, query ListAdminOrderGroupsQuery) ([]*GroupSummary, int64, error)
+	GetAdminOrderGroupDetail(ctx context.Context, orderGroupID int64) (*Group, error)
 	ListMerchantShopOrders(ctx context.Context, query ListMerchantShopOrdersQuery) ([]*MerchantShopOrderSummary, int64, error)
 	GetMerchantShopOrderDetail(ctx context.Context, shopID, shopOrderID int64) (*MerchantShopOrderDetail, error)
 	MarkMerchantShopOrderProcessing(ctx context.Context, shopID, shopOrderID int64, updatedAt time.Time) (*MerchantShopOrderDetail, error)

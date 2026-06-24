@@ -273,6 +273,137 @@ func (r *OrderRepository) GetBuyerOrderGroupDetail(ctx context.Context, userID, 
 	return group, nil
 }
 
+func (r *OrderRepository) ListAdminOrderGroups(ctx context.Context, query domainorder.ListAdminOrderGroupsQuery) ([]*domainorder.GroupSummary, int64, error) {
+	db := r.db.WithContext(ctx).Model(&OrderGroupModel{})
+	if status := strings.TrimSpace(query.Status); status != "" {
+		db = db.Where("order_groups.status = ?", status)
+	}
+	if query.UserID > 0 {
+		db = db.Where("order_groups.user_id = ?", query.UserID)
+	}
+	if query.ShopID > 0 {
+		db = db.Joins("JOIN shop_orders ON shop_orders.order_group_id = order_groups.id").Where("shop_orders.shop_id = ?", query.ShopID)
+	}
+
+	var total int64
+	if err := db.Distinct("order_groups.id").Count(&total).Error; err != nil {
+		return nil, 0, fmt.Errorf("count admin order groups: %w", err)
+	}
+
+	var groupModels []OrderGroupModel
+	offset := (query.Page - 1) * query.PageSize
+	if err := db.Select("order_groups.*").Order("order_groups.created_at DESC, order_groups.id DESC").Limit(int(query.PageSize)).Offset(int(offset)).Find(&groupModels).Error; err != nil {
+		return nil, 0, fmt.Errorf("list admin order groups: %w", err)
+	}
+	if len(groupModels) == 0 {
+		return []*domainorder.GroupSummary{}, total, nil
+	}
+
+	groupIDs := make([]int64, 0, len(groupModels))
+	for _, model := range groupModels {
+		groupIDs = append(groupIDs, model.ID)
+	}
+	var shopOrderModels []ShopOrderModel
+	if err := r.db.WithContext(ctx).Where("order_group_id IN ?", groupIDs).Order("created_at ASC, id ASC").Find(&shopOrderModels).Error; err != nil {
+		return nil, 0, fmt.Errorf("list admin shop orders for summary: %w", err)
+	}
+	shopOrdersByGroup := make(map[int64][]*domainorder.ShopOrderSummary, len(groupIDs))
+	for _, model := range shopOrderModels {
+		shopOrdersByGroup[model.OrderGroupID] = append(shopOrdersByGroup[model.OrderGroupID], toShopOrderSummary(model))
+	}
+
+	groups := make([]*domainorder.GroupSummary, 0, len(groupModels))
+	for _, model := range groupModels {
+		groups = append(groups, &domainorder.GroupSummary{
+			ID:                  model.ID,
+			UserID:              model.UserID,
+			Status:              model.Status,
+			Source:              model.Source,
+			TotalItemAmount:     model.TotalItemAmount,
+			TotalShippingAmount: model.TotalShippingAmount,
+			TotalPayAmount:      model.TotalPayAmount,
+			Currency:            model.Currency,
+			ShopOrderCount:      model.ShopOrderCount,
+			ItemCount:           model.ItemCount,
+			PaymentDeadlineAt:   model.PaymentDeadlineAt,
+			PaidAt:              model.PaidAt,
+			ShopOrders:          shopOrdersByGroup[model.ID],
+			CreatedAt:           model.CreatedAt,
+			UpdatedAt:           model.UpdatedAt,
+		})
+	}
+
+	return groups, total, nil
+}
+
+func (r *OrderRepository) GetAdminOrderGroupDetail(ctx context.Context, orderGroupID int64) (*domainorder.Group, error) {
+	groupModel, err := r.getOrderGroupModelByID(ctx, orderGroupID)
+	if err != nil {
+		return nil, err
+	}
+
+	group := &domainorder.Group{
+		ID:                  groupModel.ID,
+		UserID:              groupModel.UserID,
+		Status:              groupModel.Status,
+		Source:              groupModel.Source,
+		TotalItemAmount:     groupModel.TotalItemAmount,
+		TotalShippingAmount: groupModel.TotalShippingAmount,
+		TotalPayAmount:      groupModel.TotalPayAmount,
+		Currency:            groupModel.Currency,
+		ShopOrderCount:      groupModel.ShopOrderCount,
+		ItemCount:           groupModel.ItemCount,
+		PaymentDeadlineAt:   groupModel.PaymentDeadlineAt,
+		PaidAt:              groupModel.PaidAt,
+		CreatedAt:           groupModel.CreatedAt,
+		UpdatedAt:           groupModel.UpdatedAt,
+	}
+
+	var addressModel OrderGroupAddressModel
+	if err := r.db.WithContext(ctx).Where("order_group_id = ?", orderGroupID).First(&addressModel).Error; err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return nil, appErrors.NotFound("order address not found")
+		}
+		return nil, fmt.Errorf("find admin order address detail: %w", err)
+	}
+	group.Address = toAddressSnapshot(addressModel)
+
+	var shopOrderModels []ShopOrderModel
+	if err := r.db.WithContext(ctx).Where("order_group_id = ?", orderGroupID).Order("created_at ASC, id ASC").Find(&shopOrderModels).Error; err != nil {
+		return nil, fmt.Errorf("list admin shop orders detail: %w", err)
+	}
+	var itemModels []OrderItemModel
+	if err := r.db.WithContext(ctx).Where("order_group_id = ?", orderGroupID).Order("created_at ASC, id ASC").Find(&itemModels).Error; err != nil {
+		return nil, fmt.Errorf("list admin order items detail: %w", err)
+	}
+	itemsByShopOrder := make(map[int64][]*domainorder.Item, len(shopOrderModels))
+	for _, model := range itemModels {
+		itemsByShopOrder[model.ShopOrderID] = append(itemsByShopOrder[model.ShopOrderID], toOrderItem(model))
+	}
+	for _, model := range shopOrderModels {
+		shopOrder := &domainorder.ShopOrder{
+			ID:             model.ID,
+			OrderGroupID:   model.OrderGroupID,
+			UserID:         model.UserID,
+			ShopID:         model.ShopID,
+			ShopName:       model.ShopName,
+			Status:         model.Status,
+			ItemAmount:     model.ItemAmount,
+			ShippingAmount: model.ShippingAmount,
+			PayAmount:      model.PayAmount,
+			Currency:       model.Currency,
+			ItemCount:      model.ItemCount,
+			Items:          itemsByShopOrder[model.ID],
+			PaidAt:         model.PaidAt,
+			CreatedAt:      model.CreatedAt,
+			UpdatedAt:      model.UpdatedAt,
+		}
+		group.ShopOrders = append(group.ShopOrders, shopOrder)
+	}
+
+	return group, nil
+}
+
 func (r *OrderRepository) ListMerchantShopOrders(ctx context.Context, query domainorder.ListMerchantShopOrdersQuery) ([]*domainorder.MerchantShopOrderSummary, int64, error) {
 	db := r.db.WithContext(ctx).
 		Model(&ShopOrderModel{}).

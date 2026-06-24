@@ -3,8 +3,12 @@ package product
 import "time"
 
 const (
-	ReviewStatusApproved = "approved"
-	SaleStatusOnSale     = "on_sale"
+	ReviewStatusDraft         = "draft"
+	ReviewStatusPendingReview = "pending_review"
+	ReviewStatusRejected      = "review_rejected"
+	ReviewStatusApproved      = "approved"
+	SaleStatusOnSale          = "on_sale"
+	SaleStatusOffSale         = "off_sale"
 )
 
 type Summary struct {
@@ -18,6 +22,10 @@ type Summary struct {
 	MaxPriceAmount int64
 	Currency       string
 	TotalStock     int32
+	ReviewStatus   string
+	SaleStatus     string
+	CreatedAt      time.Time
+	UpdatedAt      time.Time
 }
 
 type SKU struct {

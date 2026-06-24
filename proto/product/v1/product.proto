@@ -8,6 +8,9 @@ service ProductService {
   rpc ListPublicProducts(ListPublicProductsRequest) returns (ListPublicProductsResponse);
   rpc GetPublicProduct(GetPublicProductRequest) returns (GetPublicProductResponse);
   rpc BatchGetSkuBriefs(BatchGetSkuBriefsRequest) returns (BatchGetSkuBriefsResponse);
+  rpc ListAdminProducts(ListAdminProductsRequest) returns (ListAdminProductsResponse);
+  rpc GetAdminProduct(GetAdminProductRequest) returns (GetAdminProductResponse);
+  rpc ReviewProduct(ReviewProductRequest) returns (ReviewProductResponse);
 }
 
 message ProductSummary {
@@ -94,4 +97,54 @@ message BatchGetSkuBriefsRequest {
 
 message BatchGetSkuBriefsResponse {
   repeated SkuBrief skus = 1;
+}
+
+message AdminProductSummary {
+  int64 id = 1;
+  int64 shop_id = 2;
+  string shop_name = 3;
+  string title = 4;
+  string sub_title = 5;
+  string main_image_url = 6;
+  int64 min_price_amount = 7;
+  int64 max_price_amount = 8;
+  string currency = 9;
+  int32 total_stock = 10;
+  string review_status = 11;
+  string sale_status = 12;
+  int64 created_at = 13;
+  int64 updated_at = 14;
+}
+
+message ListAdminProductsRequest {
+  int32 page = 1;
+  int32 page_size = 2;
+  string keyword = 3;
+  int64 shop_id = 4;
+  string review_status = 5;
+  string sale_status = 6;
+}
+
+message ListAdminProductsResponse {
+  repeated AdminProductSummary products = 1;
+  int64 total = 2;
+  int32 page = 3;
+  int32 page_size = 4;
+}
+
+message GetAdminProductRequest {
+  int64 id = 1;
+}
+
+message GetAdminProductResponse {
+  ProductDetail product = 1;
+}
+
+message ReviewProductRequest {
+  int64 id = 1;
+  string review_status = 2;
+}
+
+message ReviewProductResponse {
+  ProductDetail product = 1;
 }

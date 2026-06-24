@@ -22,6 +22,8 @@ const (
 	OrderService_SubmitOrder_FullMethodName                     = "/order.v1.OrderService/SubmitOrder"
 	OrderService_ListBuyerOrderGroups_FullMethodName            = "/order.v1.OrderService/ListBuyerOrderGroups"
 	OrderService_GetBuyerOrderGroupDetail_FullMethodName        = "/order.v1.OrderService/GetBuyerOrderGroupDetail"
+	OrderService_ListAdminOrderGroups_FullMethodName            = "/order.v1.OrderService/ListAdminOrderGroups"
+	OrderService_GetAdminOrderGroupDetail_FullMethodName        = "/order.v1.OrderService/GetAdminOrderGroupDetail"
 	OrderService_ListMerchantShopOrders_FullMethodName          = "/order.v1.OrderService/ListMerchantShopOrders"
 	OrderService_GetMerchantShopOrderDetail_FullMethodName      = "/order.v1.OrderService/GetMerchantShopOrderDetail"
 	OrderService_MarkMerchantShopOrderProcessing_FullMethodName = "/order.v1.OrderService/MarkMerchantShopOrderProcessing"
@@ -39,6 +41,8 @@ type OrderServiceClient interface {
 	SubmitOrder(ctx context.Context, in *SubmitOrderRequest, opts ...grpc.CallOption) (*SubmitOrderResponse, error)
 	ListBuyerOrderGroups(ctx context.Context, in *ListBuyerOrderGroupsRequest, opts ...grpc.CallOption) (*ListBuyerOrderGroupsResponse, error)
 	GetBuyerOrderGroupDetail(ctx context.Context, in *GetBuyerOrderGroupDetailRequest, opts ...grpc.CallOption) (*GetBuyerOrderGroupDetailResponse, error)
+	ListAdminOrderGroups(ctx context.Context, in *ListAdminOrderGroupsRequest, opts ...grpc.CallOption) (*ListAdminOrderGroupsResponse, error)
+	GetAdminOrderGroupDetail(ctx context.Context, in *GetAdminOrderGroupDetailRequest, opts ...grpc.CallOption) (*GetAdminOrderGroupDetailResponse, error)
 	ListMerchantShopOrders(ctx context.Context, in *ListMerchantShopOrdersRequest, opts ...grpc.CallOption) (*ListMerchantShopOrdersResponse, error)
 	GetMerchantShopOrderDetail(ctx context.Context, in *GetMerchantShopOrderDetailRequest, opts ...grpc.CallOption) (*GetMerchantShopOrderDetailResponse, error)
 	MarkMerchantShopOrderProcessing(ctx context.Context, in *MarkMerchantShopOrderProcessingRequest, opts ...grpc.CallOption) (*MarkMerchantShopOrderProcessingResponse, error)
@@ -81,6 +85,26 @@ func (c *orderServiceClient) GetBuyerOrderGroupDetail(ctx context.Context, in *G
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
 	out := new(GetBuyerOrderGroupDetailResponse)
 	err := c.cc.Invoke(ctx, OrderService_GetBuyerOrderGroupDetail_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *orderServiceClient) ListAdminOrderGroups(ctx context.Context, in *ListAdminOrderGroupsRequest, opts ...grpc.CallOption) (*ListAdminOrderGroupsResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(ListAdminOrderGroupsResponse)
+	err := c.cc.Invoke(ctx, OrderService_ListAdminOrderGroups_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *orderServiceClient) GetAdminOrderGroupDetail(ctx context.Context, in *GetAdminOrderGroupDetailRequest, opts ...grpc.CallOption) (*GetAdminOrderGroupDetailResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(GetAdminOrderGroupDetailResponse)
+	err := c.cc.Invoke(ctx, OrderService_GetAdminOrderGroupDetail_FullMethodName, in, out, cOpts...)
 	if err != nil {
 		return nil, err
 	}
@@ -174,6 +198,8 @@ type OrderServiceServer interface {
 	SubmitOrder(context.Context, *SubmitOrderRequest) (*SubmitOrderResponse, error)
 	ListBuyerOrderGroups(context.Context, *ListBuyerOrderGroupsRequest) (*ListBuyerOrderGroupsResponse, error)
 	GetBuyerOrderGroupDetail(context.Context, *GetBuyerOrderGroupDetailRequest) (*GetBuyerOrderGroupDetailResponse, error)
+	ListAdminOrderGroups(context.Context, *ListAdminOrderGroupsRequest) (*ListAdminOrderGroupsResponse, error)
+	GetAdminOrderGroupDetail(context.Context, *GetAdminOrderGroupDetailRequest) (*GetAdminOrderGroupDetailResponse, error)
 	ListMerchantShopOrders(context.Context, *ListMerchantShopOrdersRequest) (*ListMerchantShopOrdersResponse, error)
 	GetMerchantShopOrderDetail(context.Context, *GetMerchantShopOrderDetailRequest) (*GetMerchantShopOrderDetailResponse, error)
 	MarkMerchantShopOrderProcessing(context.Context, *MarkMerchantShopOrderProcessingRequest) (*MarkMerchantShopOrderProcessingResponse, error)
@@ -200,6 +226,12 @@ func (UnimplementedOrderServiceServer) ListBuyerOrderGroups(context.Context, *Li
 }
 func (UnimplementedOrderServiceServer) GetBuyerOrderGroupDetail(context.Context, *GetBuyerOrderGroupDetailRequest) (*GetBuyerOrderGroupDetailResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method GetBuyerOrderGroupDetail not implemented")
+}
+func (UnimplementedOrderServiceServer) ListAdminOrderGroups(context.Context, *ListAdminOrderGroupsRequest) (*ListAdminOrderGroupsResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method ListAdminOrderGroups not implemented")
+}
+func (UnimplementedOrderServiceServer) GetAdminOrderGroupDetail(context.Context, *GetAdminOrderGroupDetailRequest) (*GetAdminOrderGroupDetailResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method GetAdminOrderGroupDetail not implemented")
 }
 func (UnimplementedOrderServiceServer) ListMerchantShopOrders(context.Context, *ListMerchantShopOrdersRequest) (*ListMerchantShopOrdersResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method ListMerchantShopOrders not implemented")
@@ -296,6 +328,42 @@ func _OrderService_GetBuyerOrderGroupDetail_Handler(srv interface{}, ctx context
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(OrderServiceServer).GetBuyerOrderGroupDetail(ctx, req.(*GetBuyerOrderGroupDetailRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _OrderService_ListAdminOrderGroups_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ListAdminOrderGroupsRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(OrderServiceServer).ListAdminOrderGroups(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: OrderService_ListAdminOrderGroups_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(OrderServiceServer).ListAdminOrderGroups(ctx, req.(*ListAdminOrderGroupsRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _OrderService_GetAdminOrderGroupDetail_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetAdminOrderGroupDetailRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(OrderServiceServer).GetAdminOrderGroupDetail(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: OrderService_GetAdminOrderGroupDetail_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(OrderServiceServer).GetAdminOrderGroupDetail(ctx, req.(*GetAdminOrderGroupDetailRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -462,6 +530,14 @@ var OrderService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "GetBuyerOrderGroupDetail",
 			Handler:    _OrderService_GetBuyerOrderGroupDetail_Handler,
+		},
+		{
+			MethodName: "ListAdminOrderGroups",
+			Handler:    _OrderService_ListAdminOrderGroups_Handler,
+		},
+		{
+			MethodName: "GetAdminOrderGroupDetail",
+			Handler:    _OrderService_GetAdminOrderGroupDetail_Handler,
 		},
 		{
 			MethodName: "ListMerchantShopOrders",

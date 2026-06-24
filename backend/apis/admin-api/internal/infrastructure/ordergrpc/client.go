@@ -67,6 +67,40 @@ func (c *Client) GetMerchantShopOrderDetail(ctx context.Context, shopID, shopOrd
 	return toMerchantShopOrderDetail(resp.GetShopOrder()), nil
 }
 
+func (c *Client) ListAdminOrderGroups(ctx context.Context, input applicationadmin.ListAdminOrderGroupsInput) (*applicationadmin.ListAdminOrderGroupsResult, error) {
+	resp, err := c.client.ListAdminOrderGroups(ctx, &orderv1.ListAdminOrderGroupsRequest{
+		UserId:   input.UserID,
+		ShopId:   input.ShopID,
+		Page:     input.Page,
+		PageSize: input.PageSize,
+		Status:   input.Status,
+	})
+	if err != nil {
+		return nil, toAppError(err)
+	}
+
+	items := make([]*applicationadmin.OrderGroupSummary, 0, len(resp.GetOrderGroups()))
+	for _, group := range resp.GetOrderGroups() {
+		items = append(items, toOrderGroupSummary(group))
+	}
+
+	return &applicationadmin.ListAdminOrderGroupsResult{
+		OrderGroups: items,
+		Total:       resp.GetTotal(),
+		Page:        resp.GetPage(),
+		PageSize:    resp.GetPageSize(),
+	}, nil
+}
+
+func (c *Client) GetAdminOrderGroupDetail(ctx context.Context, orderGroupID int64) (*applicationadmin.OrderGroupDetail, error) {
+	resp, err := c.client.GetAdminOrderGroupDetail(ctx, &orderv1.GetAdminOrderGroupDetailRequest{OrderGroupId: orderGroupID})
+	if err != nil {
+		return nil, toAppError(err)
+	}
+
+	return toOrderGroupDetail(resp.GetOrderGroup()), nil
+}
+
 func (c *Client) MarkMerchantShopOrderProcessing(ctx context.Context, shopID, shopOrderID int64) (*applicationadmin.MerchantShopOrderDetail, error) {
 	resp, err := c.client.MarkMerchantShopOrderProcessing(ctx, &orderv1.MarkMerchantShopOrderProcessingRequest{ShopId: shopID, ShopOrderId: shopOrderID})
 	if err != nil {
@@ -182,6 +216,80 @@ func toShopOrder(shopOrder *orderv1.ShopOrder) *applicationadmin.ShopOrder {
 		PaidAt:         shopOrder.GetPaidAt(),
 		CreatedAt:      shopOrder.GetCreatedAt(),
 		UpdatedAt:      shopOrder.GetUpdatedAt(),
+	}
+}
+
+func toOrderGroupSummary(group *orderv1.OrderGroupSummary) *applicationadmin.OrderGroupSummary {
+	if group == nil {
+		return nil
+	}
+
+	shopOrders := make([]*applicationadmin.ShopOrder, 0, len(group.GetShopOrders()))
+	for _, shopOrder := range group.GetShopOrders() {
+		shopOrders = append(shopOrders, &applicationadmin.ShopOrder{
+			ID:             shopOrder.GetId(),
+			OrderGroupID:   shopOrder.GetOrderGroupId(),
+			UserID:         shopOrder.GetUserId(),
+			ShopID:         shopOrder.GetShopId(),
+			ShopName:       shopOrder.GetShopName(),
+			Status:         shopOrder.GetStatus(),
+			ItemAmount:     shopOrder.GetItemAmount(),
+			ShippingAmount: shopOrder.GetShippingAmount(),
+			PayAmount:      shopOrder.GetPayAmount(),
+			Currency:       shopOrder.GetCurrency(),
+			ItemCount:      shopOrder.GetItemCount(),
+			PaidAt:         shopOrder.GetPaidAt(),
+			CreatedAt:      shopOrder.GetCreatedAt(),
+			UpdatedAt:      shopOrder.GetUpdatedAt(),
+		})
+	}
+
+	return &applicationadmin.OrderGroupSummary{
+		ID:                  group.GetId(),
+		UserID:              group.GetUserId(),
+		Status:              group.GetStatus(),
+		Source:              group.GetSource(),
+		TotalItemAmount:     group.GetTotalItemAmount(),
+		TotalShippingAmount: group.GetTotalShippingAmount(),
+		TotalPayAmount:      group.GetTotalPayAmount(),
+		Currency:            group.GetCurrency(),
+		ShopOrderCount:      group.GetShopOrderCount(),
+		ItemCount:           group.GetItemCount(),
+		PaymentDeadlineAt:   group.GetPaymentDeadlineAt(),
+		PaidAt:              group.GetPaidAt(),
+		ShopOrders:          shopOrders,
+		CreatedAt:           group.GetCreatedAt(),
+		UpdatedAt:           group.GetUpdatedAt(),
+	}
+}
+
+func toOrderGroupDetail(group *orderv1.OrderGroupDetail) *applicationadmin.OrderGroupDetail {
+	if group == nil {
+		return nil
+	}
+
+	shopOrders := make([]*applicationadmin.ShopOrder, 0, len(group.GetShopOrders()))
+	for _, shopOrder := range group.GetShopOrders() {
+		shopOrders = append(shopOrders, toShopOrder(shopOrder))
+	}
+
+	return &applicationadmin.OrderGroupDetail{
+		ID:                  group.GetId(),
+		UserID:              group.GetUserId(),
+		Status:              group.GetStatus(),
+		Source:              group.GetSource(),
+		TotalItemAmount:     group.GetTotalItemAmount(),
+		TotalShippingAmount: group.GetTotalShippingAmount(),
+		TotalPayAmount:      group.GetTotalPayAmount(),
+		Currency:            group.GetCurrency(),
+		ShopOrderCount:      group.GetShopOrderCount(),
+		ItemCount:           group.GetItemCount(),
+		PaymentDeadlineAt:   group.GetPaymentDeadlineAt(),
+		PaidAt:              group.GetPaidAt(),
+		Address:             toAddressSnapshot(group.GetAddress()),
+		ShopOrders:          shopOrders,
+		CreatedAt:           group.GetCreatedAt(),
+		UpdatedAt:           group.GetUpdatedAt(),
 	}
 }
 

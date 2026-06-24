@@ -18,6 +18,8 @@ type OrderServiceServer struct {
 	submitService       *applicationorder.SubmitOrderService
 	listService         *applicationorder.ListBuyerOrderGroupsService
 	getService          *applicationorder.GetBuyerOrderGroupDetailService
+	listAdminService    *applicationorder.ListAdminOrderGroupsService
+	getAdminService     *applicationorder.GetAdminOrderGroupDetailService
 	listMerchantService *applicationorder.ListMerchantShopOrdersService
 	getMerchantService  *applicationorder.GetMerchantShopOrderDetailService
 	markProcessingSvc   *applicationorder.MarkMerchantShopOrderProcessingService
@@ -32,6 +34,8 @@ func NewOrderServiceServer(
 	submitService *applicationorder.SubmitOrderService,
 	listService *applicationorder.ListBuyerOrderGroupsService,
 	getService *applicationorder.GetBuyerOrderGroupDetailService,
+	listAdminService *applicationorder.ListAdminOrderGroupsService,
+	getAdminService *applicationorder.GetAdminOrderGroupDetailService,
 	listMerchantService *applicationorder.ListMerchantShopOrdersService,
 	getMerchantService *applicationorder.GetMerchantShopOrderDetailService,
 	markProcessingSvc *applicationorder.MarkMerchantShopOrderProcessingService,
@@ -45,6 +49,8 @@ func NewOrderServiceServer(
 		submitService:       submitService,
 		listService:         listService,
 		getService:          getService,
+		listAdminService:    listAdminService,
+		getAdminService:     getAdminService,
 		listMerchantService: listMerchantService,
 		getMerchantService:  getMerchantService,
 		markProcessingSvc:   markProcessingSvc,
@@ -108,6 +114,43 @@ func (s *OrderServiceServer) GetBuyerOrderGroupDetail(ctx context.Context, req *
 	}
 
 	return &orderv1.GetBuyerOrderGroupDetailResponse{OrderGroup: toOrderGroupDetailPB(group)}, nil
+}
+
+func (s *OrderServiceServer) ListAdminOrderGroups(ctx context.Context, req *orderv1.ListAdminOrderGroupsRequest) (*orderv1.ListAdminOrderGroupsResponse, error) {
+	if req == nil {
+		return nil, status.Error(codes.InvalidArgument, "request is required")
+	}
+
+	result, err := s.listAdminService.Execute(ctx, applicationorder.ListAdminOrderGroupsInput{
+		UserID:   req.GetUserId(),
+		ShopID:   req.GetShopId(),
+		Page:     req.GetPage(),
+		PageSize: req.GetPageSize(),
+		Status:   req.GetStatus(),
+	})
+	if err != nil {
+		return nil, toGRPCError(err)
+	}
+
+	items := make([]*orderv1.OrderGroupSummary, 0, len(result.OrderGroups))
+	for _, group := range result.OrderGroups {
+		items = append(items, toOrderGroupSummaryPB(group))
+	}
+
+	return &orderv1.ListAdminOrderGroupsResponse{OrderGroups: items, Total: result.Total, Page: result.Page, PageSize: result.PageSize}, nil
+}
+
+func (s *OrderServiceServer) GetAdminOrderGroupDetail(ctx context.Context, req *orderv1.GetAdminOrderGroupDetailRequest) (*orderv1.GetAdminOrderGroupDetailResponse, error) {
+	if req == nil {
+		return nil, status.Error(codes.InvalidArgument, "request is required")
+	}
+
+	group, err := s.getAdminService.Execute(ctx, req.GetOrderGroupId())
+	if err != nil {
+		return nil, toGRPCError(err)
+	}
+
+	return &orderv1.GetAdminOrderGroupDetailResponse{OrderGroup: toOrderGroupDetailPB(group)}, nil
 }
 
 func (s *OrderServiceServer) ListMerchantShopOrders(ctx context.Context, req *orderv1.ListMerchantShopOrdersRequest) (*orderv1.ListMerchantShopOrdersResponse, error) {

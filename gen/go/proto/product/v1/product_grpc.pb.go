@@ -22,6 +22,9 @@ const (
 	ProductService_ListPublicProducts_FullMethodName = "/product.v1.ProductService/ListPublicProducts"
 	ProductService_GetPublicProduct_FullMethodName   = "/product.v1.ProductService/GetPublicProduct"
 	ProductService_BatchGetSkuBriefs_FullMethodName  = "/product.v1.ProductService/BatchGetSkuBriefs"
+	ProductService_ListAdminProducts_FullMethodName  = "/product.v1.ProductService/ListAdminProducts"
+	ProductService_GetAdminProduct_FullMethodName    = "/product.v1.ProductService/GetAdminProduct"
+	ProductService_ReviewProduct_FullMethodName      = "/product.v1.ProductService/ReviewProduct"
 )
 
 // ProductServiceClient is the client API for ProductService service.
@@ -31,6 +34,9 @@ type ProductServiceClient interface {
 	ListPublicProducts(ctx context.Context, in *ListPublicProductsRequest, opts ...grpc.CallOption) (*ListPublicProductsResponse, error)
 	GetPublicProduct(ctx context.Context, in *GetPublicProductRequest, opts ...grpc.CallOption) (*GetPublicProductResponse, error)
 	BatchGetSkuBriefs(ctx context.Context, in *BatchGetSkuBriefsRequest, opts ...grpc.CallOption) (*BatchGetSkuBriefsResponse, error)
+	ListAdminProducts(ctx context.Context, in *ListAdminProductsRequest, opts ...grpc.CallOption) (*ListAdminProductsResponse, error)
+	GetAdminProduct(ctx context.Context, in *GetAdminProductRequest, opts ...grpc.CallOption) (*GetAdminProductResponse, error)
+	ReviewProduct(ctx context.Context, in *ReviewProductRequest, opts ...grpc.CallOption) (*ReviewProductResponse, error)
 }
 
 type productServiceClient struct {
@@ -71,6 +77,36 @@ func (c *productServiceClient) BatchGetSkuBriefs(ctx context.Context, in *BatchG
 	return out, nil
 }
 
+func (c *productServiceClient) ListAdminProducts(ctx context.Context, in *ListAdminProductsRequest, opts ...grpc.CallOption) (*ListAdminProductsResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(ListAdminProductsResponse)
+	err := c.cc.Invoke(ctx, ProductService_ListAdminProducts_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *productServiceClient) GetAdminProduct(ctx context.Context, in *GetAdminProductRequest, opts ...grpc.CallOption) (*GetAdminProductResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(GetAdminProductResponse)
+	err := c.cc.Invoke(ctx, ProductService_GetAdminProduct_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *productServiceClient) ReviewProduct(ctx context.Context, in *ReviewProductRequest, opts ...grpc.CallOption) (*ReviewProductResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(ReviewProductResponse)
+	err := c.cc.Invoke(ctx, ProductService_ReviewProduct_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // ProductServiceServer is the server API for ProductService service.
 // All implementations must embed UnimplementedProductServiceServer
 // for forward compatibility.
@@ -78,6 +114,9 @@ type ProductServiceServer interface {
 	ListPublicProducts(context.Context, *ListPublicProductsRequest) (*ListPublicProductsResponse, error)
 	GetPublicProduct(context.Context, *GetPublicProductRequest) (*GetPublicProductResponse, error)
 	BatchGetSkuBriefs(context.Context, *BatchGetSkuBriefsRequest) (*BatchGetSkuBriefsResponse, error)
+	ListAdminProducts(context.Context, *ListAdminProductsRequest) (*ListAdminProductsResponse, error)
+	GetAdminProduct(context.Context, *GetAdminProductRequest) (*GetAdminProductResponse, error)
+	ReviewProduct(context.Context, *ReviewProductRequest) (*ReviewProductResponse, error)
 	mustEmbedUnimplementedProductServiceServer()
 }
 
@@ -96,6 +135,15 @@ func (UnimplementedProductServiceServer) GetPublicProduct(context.Context, *GetP
 }
 func (UnimplementedProductServiceServer) BatchGetSkuBriefs(context.Context, *BatchGetSkuBriefsRequest) (*BatchGetSkuBriefsResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method BatchGetSkuBriefs not implemented")
+}
+func (UnimplementedProductServiceServer) ListAdminProducts(context.Context, *ListAdminProductsRequest) (*ListAdminProductsResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method ListAdminProducts not implemented")
+}
+func (UnimplementedProductServiceServer) GetAdminProduct(context.Context, *GetAdminProductRequest) (*GetAdminProductResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method GetAdminProduct not implemented")
+}
+func (UnimplementedProductServiceServer) ReviewProduct(context.Context, *ReviewProductRequest) (*ReviewProductResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method ReviewProduct not implemented")
 }
 func (UnimplementedProductServiceServer) mustEmbedUnimplementedProductServiceServer() {}
 func (UnimplementedProductServiceServer) testEmbeddedByValue()                        {}
@@ -172,6 +220,60 @@ func _ProductService_BatchGetSkuBriefs_Handler(srv interface{}, ctx context.Cont
 	return interceptor(ctx, in, info, handler)
 }
 
+func _ProductService_ListAdminProducts_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ListAdminProductsRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(ProductServiceServer).ListAdminProducts(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: ProductService_ListAdminProducts_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(ProductServiceServer).ListAdminProducts(ctx, req.(*ListAdminProductsRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _ProductService_GetAdminProduct_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetAdminProductRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(ProductServiceServer).GetAdminProduct(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: ProductService_GetAdminProduct_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(ProductServiceServer).GetAdminProduct(ctx, req.(*GetAdminProductRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _ProductService_ReviewProduct_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ReviewProductRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(ProductServiceServer).ReviewProduct(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: ProductService_ReviewProduct_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(ProductServiceServer).ReviewProduct(ctx, req.(*ReviewProductRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // ProductService_ServiceDesc is the grpc.ServiceDesc for ProductService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -190,6 +292,18 @@ var ProductService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "BatchGetSkuBriefs",
 			Handler:    _ProductService_BatchGetSkuBriefs_Handler,
+		},
+		{
+			MethodName: "ListAdminProducts",
+			Handler:    _ProductService_ListAdminProducts_Handler,
+		},
+		{
+			MethodName: "GetAdminProduct",
+			Handler:    _ProductService_GetAdminProduct_Handler,
+		},
+		{
+			MethodName: "ReviewProduct",
+			Handler:    _ProductService_ReviewProduct_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

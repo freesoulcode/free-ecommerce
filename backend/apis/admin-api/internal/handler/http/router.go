@@ -9,9 +9,11 @@ import (
 )
 
 type RouterParams struct {
-	ServiceName           string
-	AdminUserHandler      *AdminUserHandler
-	AdminShopOrderHandler *AdminShopOrderHandler
+	ServiceName            string
+	AdminUserHandler       *AdminUserHandler
+	AdminOrderGroupHandler *AdminOrderGroupHandler
+	AdminShopOrderHandler  *AdminShopOrderHandler
+	AdminProductHandler    *AdminProductHandler
 }
 
 func NewRouter(params RouterParams) *gin.Engine {
@@ -38,8 +40,14 @@ func NewRouter(params RouterParams) *gin.Engine {
 	if params.AdminUserHandler != nil {
 		params.AdminUserHandler.RegisterRoutes(router)
 	}
+	if params.AdminOrderGroupHandler != nil {
+		params.AdminOrderGroupHandler.RegisterRoutes(router)
+	}
 	if params.AdminShopOrderHandler != nil {
 		params.AdminShopOrderHandler.RegisterRoutes(router)
+	}
+	if params.AdminProductHandler != nil {
+		params.AdminProductHandler.RegisterRoutes(router)
 	}
 
 	return router

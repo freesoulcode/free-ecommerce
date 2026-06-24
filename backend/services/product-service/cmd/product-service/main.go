@@ -38,7 +38,10 @@ func main() {
 	listService := applicationproduct.NewListPublicProductsService(repo)
 	getService := applicationproduct.NewGetPublicProductService(repo)
 	batchSkuService := applicationproduct.NewBatchGetSkuBriefsService(repo)
-	productGRPCServer := servicegrpc.NewProductServiceServer(listService, getService, batchSkuService)
+	listAdminService := applicationproduct.NewListAdminProductsService(repo)
+	getAdminService := applicationproduct.NewGetAdminProductService(repo)
+	reviewService := applicationproduct.NewReviewProductService(repo)
+	productGRPCServer := servicegrpc.NewProductServiceServer(listService, getService, batchSkuService, listAdminService, getAdminService, reviewService)
 
 	grpcListener, err := net.Listen("tcp", cfg.GRPCAddr)
 	if err != nil {

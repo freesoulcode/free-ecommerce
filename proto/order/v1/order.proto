@@ -8,6 +8,8 @@ service OrderService {
   rpc SubmitOrder(SubmitOrderRequest) returns (SubmitOrderResponse);
   rpc ListBuyerOrderGroups(ListBuyerOrderGroupsRequest) returns (ListBuyerOrderGroupsResponse);
   rpc GetBuyerOrderGroupDetail(GetBuyerOrderGroupDetailRequest) returns (GetBuyerOrderGroupDetailResponse);
+  rpc ListAdminOrderGroups(ListAdminOrderGroupsRequest) returns (ListAdminOrderGroupsResponse);
+  rpc GetAdminOrderGroupDetail(GetAdminOrderGroupDetailRequest) returns (GetAdminOrderGroupDetailResponse);
   rpc ListMerchantShopOrders(ListMerchantShopOrdersRequest) returns (ListMerchantShopOrdersResponse);
   rpc GetMerchantShopOrderDetail(GetMerchantShopOrderDetailRequest) returns (GetMerchantShopOrderDetailResponse);
   rpc MarkMerchantShopOrderProcessing(MarkMerchantShopOrderProcessingRequest) returns (MarkMerchantShopOrderProcessingResponse);
@@ -202,6 +204,29 @@ message GetBuyerOrderGroupDetailRequest {
 }
 
 message GetBuyerOrderGroupDetailResponse {
+  OrderGroupDetail order_group = 1;
+}
+
+message ListAdminOrderGroupsRequest {
+  int32 page = 1;
+  int32 page_size = 2;
+  string status = 3;
+  int64 user_id = 4;
+  int64 shop_id = 5;
+}
+
+message ListAdminOrderGroupsResponse {
+  repeated OrderGroupSummary order_groups = 1;
+  int64 total = 2;
+  int32 page = 3;
+  int32 page_size = 4;
+}
+
+message GetAdminOrderGroupDetailRequest {
+  int64 order_group_id = 1;
+}
+
+message GetAdminOrderGroupDetailResponse {
   OrderGroupDetail order_group = 1;
 }
 

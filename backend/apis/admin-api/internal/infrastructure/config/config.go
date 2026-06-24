@@ -10,12 +10,13 @@ const (
 )
 
 type Config struct {
-	ServiceName  string
-	Env          string
-	HTTPAddr     string
-	LogLevel     string
-	UserService  UserServiceConfig
-	OrderService OrderServiceConfig
+	ServiceName    string
+	Env            string
+	HTTPAddr       string
+	LogLevel       string
+	UserService    UserServiceConfig
+	OrderService   OrderServiceConfig
+	ProductService ProductServiceConfig
 }
 
 type UserServiceConfig struct {
@@ -23,6 +24,10 @@ type UserServiceConfig struct {
 }
 
 type OrderServiceConfig struct {
+	GRPCAddr string
+}
+
+type ProductServiceConfig struct {
 	GRPCAddr string
 }
 
@@ -37,6 +42,9 @@ func Load() Config {
 		},
 		OrderService: OrderServiceConfig{
 			GRPCAddr: getEnv("ADMIN_API_ORDER_SERVICE_GRPC_ADDR", "127.0.0.1:9085"),
+		},
+		ProductService: ProductServiceConfig{
+			GRPCAddr: getEnv("ADMIN_API_PRODUCT_SERVICE_GRPC_ADDR", "127.0.0.1:9083"),
 		},
 	}
 }

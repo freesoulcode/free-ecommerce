@@ -12,8 +12,21 @@ type AdminShopOrderHandler struct {
 	service *applicationadmin.ShopOrderAdminService
 }
 
+type AdminOrderGroupHandler struct {
+	service *applicationadmin.OrderGroupAdminService
+}
+
 func NewAdminShopOrderHandler(service *applicationadmin.ShopOrderAdminService) *AdminShopOrderHandler {
 	return &AdminShopOrderHandler{service: service}
+}
+
+func NewAdminOrderGroupHandler(service *applicationadmin.OrderGroupAdminService) *AdminOrderGroupHandler {
+	return &AdminOrderGroupHandler{service: service}
+}
+
+func (h *AdminOrderGroupHandler) RegisterRoutes(router *gin.Engine) {
+	router.GET("/api/v1/admin/orders", h.list)
+	router.GET("/api/v1/admin/orders/:orderGroupID", h.detail)
 }
 
 func (h *AdminShopOrderHandler) RegisterRoutes(router *gin.Engine) {
@@ -21,6 +34,47 @@ func (h *AdminShopOrderHandler) RegisterRoutes(router *gin.Engine) {
 	router.GET("/api/v1/admin/shops/:shopID/orders/:shopOrderID", h.detail)
 	router.POST("/api/v1/admin/shops/:shopID/orders/:shopOrderID/processing", h.markProcessing)
 	router.POST("/api/v1/admin/shops/:shopID/orders/:shopOrderID/ship", h.markShipped)
+}
+
+func (h *AdminOrderGroupHandler) list(c *gin.Context) {
+	page, _ := strconv.ParseInt(c.DefaultQuery("page", "1"), 10, 32)
+	pageSize, _ := strconv.ParseInt(c.DefaultQuery("page_size", "20"), 10, 32)
+	userID, _ := strconv.ParseInt(c.DefaultQuery("user_id", "0"), 10, 64)
+	shopID, _ := strconv.ParseInt(c.DefaultQuery("shop_id", "0"), 10, 64)
+
+	result, err := h.service.List(c.Request.Context(), applicationadmin.ListAdminOrderGroupsInput{
+		UserID:   userID,
+		ShopID:   shopID,
+		Page:     int32(page),
+		PageSize: int32(pageSize),
+		Status:   c.Query("status"),
+	})
+	if err != nil {
+		httpx.Error(c, err)
+		return
+	}
+
+	items := make([]gin.H, 0, len(result.OrderGroups))
+	for _, group := range result.OrderGroups {
+		items = append(items, orderGroupSummaryResponse(group))
+	}
+
+	httpx.OK(c, gin.H{"order_groups": items, "total": result.Total, "page": result.Page, "page_size": result.PageSize})
+}
+
+func (h *AdminOrderGroupHandler) detail(c *gin.Context) {
+	orderGroupID, ok := parseInt64PathParam(c, "orderGroupID")
+	if !ok {
+		return
+	}
+
+	group, err := h.service.Detail(c.Request.Context(), orderGroupID)
+	if err != nil {
+		httpx.Error(c, err)
+		return
+	}
+
+	httpx.OK(c, gin.H{"order_group": orderGroupDetailResponse(group)})
 }
 
 func (h *AdminShopOrderHandler) list(c *gin.Context) {
@@ -229,5 +283,64 @@ func merchantShopOrderDetailResponse(shopOrder *applicationadmin.MerchantShopOrd
 		"paid_at":             shopOrder.PaidAt,
 		"address":             orderAddressSnapshotResponse(shopOrder.Address),
 		"shop_order":          shopOrderResponse(shopOrder.ShopOrder),
+	}
+}
+
+func orderGroupSummaryResponse(group *applicationadmin.OrderGroupSummary) gin.H {
+	if group == nil {
+		return nil
+	}
+
+	shopOrders := make([]gin.H, 0, len(group.ShopOrders))
+	for _, shopOrder := range group.ShopOrders {
+		shopOrders = append(shopOrders, shopOrderResponse(shopOrder))
+	}
+
+	return gin.H{
+		"id":                    group.ID,
+		"user_id":               group.UserID,
+		"status":                group.Status,
+		"source":                group.Source,
+		"total_item_amount":     group.TotalItemAmount,
+		"total_shipping_amount": group.TotalShippingAmount,
+		"total_pay_amount":      group.TotalPayAmount,
+		"currency":              group.Currency,
+		"shop_order_count":      group.ShopOrderCount,
+		"item_count":            group.ItemCount,
+		"payment_deadline_at":   group.PaymentDeadlineAt,
+		"paid_at":               group.PaidAt,
+		"shop_orders":           shopOrders,
+		"created_at":            group.CreatedAt,
+		"updated_at":            group.UpdatedAt,
+	}
+}
+
+func orderGroupDetailResponse(group *applicationadmin.OrderGroupDetail) gin.H {
+	if group == nil {
+		return nil
+	}
+
+	shopOrders := make([]gin.H, 0, len(group.ShopOrders))
+	for _, shopOrder := range group.ShopOrders {
+		shopOrders = append(shopOrders, shopOrderResponse(shopOrder))
+	}
+
+	return gin.H{
+		"id":                    group.ID,
+		"user_id":               group.UserID,
+		"status":                group.Status,
+		"source":                group.Source,
+		"total_item_amount":     group.TotalItemAmount,
+		"total_shipping_amount": group.TotalShippingAmount,
+		"total_pay_amount":      group.TotalPayAmount,
+		"currency":              group.Currency,
+		"shop_order_count":      group.ShopOrderCount,
+		"item_count":            group.ItemCount,
+		"payment_deadline_at":   group.PaymentDeadlineAt,
+		"paid_at":               group.PaidAt,
+		"address":               orderAddressSnapshotResponse(group.Address),
+		"shop_orders":           shopOrders,
+		"created_at":            group.CreatedAt,
+		"updated_at":            group.UpdatedAt,
 	}
 }

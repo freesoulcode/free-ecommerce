@@ -80,6 +80,14 @@ type ListMerchantShopOrdersInput struct {
 	Status   string
 }
 
+type ListAdminOrderGroupsInput struct {
+	UserID   int64
+	ShopID   int64
+	Page     int32
+	PageSize int32
+	Status   string
+}
+
 type ListBuyerOrderGroupsResult struct {
 	OrderGroups []*domainorder.GroupSummary
 	Total       int64
@@ -92,6 +100,13 @@ type ListMerchantShopOrdersResult struct {
 	Total      int64
 	Page       int32
 	PageSize   int32
+}
+
+type ListAdminOrderGroupsResult struct {
+	OrderGroups []*domainorder.GroupSummary
+	Total       int64
+	Page        int32
+	PageSize    int32
 }
 
 type SubmitOrderService struct {
@@ -108,6 +123,14 @@ type ListBuyerOrderGroupsService struct {
 }
 
 type GetBuyerOrderGroupDetailService struct {
+	repo domainorder.Repository
+}
+
+type ListAdminOrderGroupsService struct {
+	repo domainorder.Repository
+}
+
+type GetAdminOrderGroupDetailService struct {
 	repo domainorder.Repository
 }
 
@@ -165,6 +188,14 @@ func NewListBuyerOrderGroupsService(repo domainorder.Repository) *ListBuyerOrder
 
 func NewGetBuyerOrderGroupDetailService(repo domainorder.Repository) *GetBuyerOrderGroupDetailService {
 	return &GetBuyerOrderGroupDetailService{repo: repo}
+}
+
+func NewListAdminOrderGroupsService(repo domainorder.Repository) *ListAdminOrderGroupsService {
+	return &ListAdminOrderGroupsService{repo: repo}
+}
+
+func NewGetAdminOrderGroupDetailService(repo domainorder.Repository) *GetAdminOrderGroupDetailService {
+	return &GetAdminOrderGroupDetailService{repo: repo}
 }
 
 func NewListMerchantShopOrdersService(repo domainorder.Repository) *ListMerchantShopOrdersService {
@@ -398,6 +429,47 @@ func (s *GetBuyerOrderGroupDetailService) Execute(ctx context.Context, userID, o
 	}
 
 	return s.repo.GetBuyerOrderGroupDetail(ctx, userID, orderGroupID)
+}
+
+func (s *ListAdminOrderGroupsService) Execute(ctx context.Context, input ListAdminOrderGroupsInput) (*ListAdminOrderGroupsResult, error) {
+	page := input.Page
+	if page <= 0 {
+		page = 1
+	}
+	pageSize := input.PageSize
+	if pageSize <= 0 {
+		pageSize = 20
+	}
+	if pageSize > 100 {
+		pageSize = 100
+	}
+	if input.UserID < 0 {
+		return nil, appErrors.InvalidArgument("user id is invalid")
+	}
+	if input.ShopID < 0 {
+		return nil, appErrors.InvalidArgument("shop id is invalid")
+	}
+
+	groups, total, err := s.repo.ListAdminOrderGroups(ctx, domainorder.ListAdminOrderGroupsQuery{
+		UserID:   input.UserID,
+		ShopID:   input.ShopID,
+		Page:     page,
+		PageSize: pageSize,
+		Status:   strings.TrimSpace(input.Status),
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	return &ListAdminOrderGroupsResult{OrderGroups: groups, Total: total, Page: page, PageSize: pageSize}, nil
+}
+
+func (s *GetAdminOrderGroupDetailService) Execute(ctx context.Context, orderGroupID int64) (*domainorder.Group, error) {
+	if orderGroupID <= 0 {
+		return nil, appErrors.InvalidArgument("order group id is required")
+	}
+
+	return s.repo.GetAdminOrderGroupDetail(ctx, orderGroupID)
 }
 
 func (s *ListMerchantShopOrdersService) Execute(ctx context.Context, input ListMerchantShopOrdersInput) (*ListMerchantShopOrdersResult, error) {
