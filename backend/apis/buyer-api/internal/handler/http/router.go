@@ -5,6 +5,7 @@ import (
 	"time"
 
 	"github.com/freesoulcode/free-ecommerce/backend/pkg/httpx"
+	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
 )
 
@@ -26,6 +27,14 @@ func NewRouter(params RouterParams) *gin.Engine {
 
 	router := gin.New()
 	router.Use(gin.Recovery())
+	router.Use(cors.New(cors.Config{
+		AllowOrigins:     []string{"http://localhost:5174", "http://127.0.0.1:5174"},
+		AllowMethods:     []string{"GET", "POST", "PUT", "DELETE", "OPTIONS"},
+		AllowHeaders:     []string{"Origin", "Content-Type", "Authorization"},
+		ExposeHeaders:    []string{"Content-Length"},
+		AllowCredentials: true,
+		MaxAge:           12 * time.Hour,
+	}))
 
 	router.GET("/healthz", func(c *gin.Context) {
 		httpx.OK(c, gin.H{
